@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>update 5 - simplistic</title>
+    <title>update 5</title>
     <!-- Include Three.js for the 3D survival game section -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -205,7 +205,7 @@
 
     <div class="container" id="mainContainer">
         <div class="image-wrapper" id="clickArea">
-            <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/1274_Sem_Titulo_20250617215305.webp?v=5.0" alt="update image">
+            <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/1274_Sem_Titulo_20250617215305.webp?v=5.1" alt="update image">
         </div>
         <h1>he will update you</h1>
     </div>
@@ -225,7 +225,7 @@
 
     <!-- Custom Jumpscare Overlay -->
     <div id="jumpscareScreen">
-        <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=5.0" alt="jumpscare">
+        <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=5.1" alt="jumpscare">
         <h2>YOU DIED</h2>
     </div>
 
@@ -539,7 +539,7 @@
             let gameRunning = true;
             let animationFrameId = null;
             
-            textureLoader.load('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=5.0', (texture) => {
+            textureLoader.load('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=5.1', (texture) => {
                 const monsterMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
                 monsterMesh = new THREE.Sprite(monsterMat);
                 monsterMesh.scale.set(2.2, 3.2, 1);
@@ -681,12 +681,11 @@
             fnfContainer.style.display = 'block';
 
             const playerImg = new Image();
-            playerImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/6a483e08c9e4c_download.jpeg?v=5.0';
+            playerImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/6a483e08c9e4c_download.jpeg?v=5.1';
             
             const monsterImg = new Image();
-            monsterImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=5.0';
+            monsterImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=5.1';
 
-            // Raw direct-download MP3 endpoint conversion for GitHub blob URL
             const rawAudioUrl = "https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/Artful's%20Copyright%20Music%20Box%20(UNOFFICIAL%20UPLOAD).mp3";
             const bgMusic = new Audio(rawAudioUrl);
             bgMusic.loop = false;
@@ -710,7 +709,6 @@
             const scrollSpeed = 4.0;
             const hitY = 100;
 
-            // Generate an extended 35-second chart sequence
             let notes = [];
             for (let t = 2.0; t < 34.5; t += 0.6) {
                 let lane = Math.floor(Math.random() * 4);
@@ -852,11 +850,9 @@
                 fnfCtx.font = '18px Arial, sans-serif';
                 fnfCtx.fillText(`Score: ${score}`, 360, 110);
                 
-                // Show time left for clarity
                 let timeLeft = Math.max(0, (35 - currentAudioTime)).toFixed(1);
                 fnfCtx.fillText(`Time: ${timeLeft}s`, 360, 135);
 
-                // Force end sequence at exactly 35 seconds or when audio ends
                 if (health > 0 && currentAudioTime < 35.0 && !bgMusic.ended) {
                     requestAnimationFrame(fnfLoop);
                 } else {
