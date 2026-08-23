@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>update 4</title>
+    <title>update 5 - simplistic</title>
     <!-- Include Three.js for the 3D survival game section -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -205,9 +205,9 @@
 
     <div class="container" id="mainContainer">
         <div class="image-wrapper" id="clickArea">
-            <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/1274_Sem_Titulo_20250617215305.webp?v=4.1" alt="update image">
+            <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/1274_Sem_Titulo_20250617215305.webp?v=5.0" alt="update image">
         </div>
-        <h1>?</h1>
+        <h1>he will update you</h1>
     </div>
 
     <canvas id="gameCanvas" width="800" height="450"></canvas>
@@ -225,7 +225,7 @@
 
     <!-- Custom Jumpscare Overlay -->
     <div id="jumpscareScreen">
-        <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=4.1" alt="jumpscare">
+        <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=5.0" alt="jumpscare">
         <h2>YOU DIED</h2>
     </div>
 
@@ -235,7 +235,7 @@
     <div id="endScreen">soon after this</div>
 
     <!-- Corner Version Text -->
-    <div id="updateWatermark">update 4</div>
+    <div id="updateWatermark">update 5</div>
 
     <script>
         const clickArea = document.getElementById('clickArea');
@@ -539,7 +539,7 @@
             let gameRunning = true;
             let animationFrameId = null;
             
-            textureLoader.load('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=4.1', (texture) => {
+            textureLoader.load('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=5.0', (texture) => {
                 const monsterMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
                 monsterMesh = new THREE.Sprite(monsterMat);
                 monsterMesh.scale.set(2.2, 3.2, 1);
@@ -671,7 +671,7 @@
         }
 
         // ==========================================
-        // FNF RHYTHM BATTLE SECTION
+        // FNF RHYTHM BATTLE SECTION (35-Second Limit)
         // ==========================================
         function startFNFBattle() {
             const fnfContainer = document.getElementById('fnfContainer');
@@ -681,16 +681,17 @@
             fnfContainer.style.display = 'block';
 
             const playerImg = new Image();
-            playerImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/6a483e08c9e4c_download.jpeg?v=4.1';
+            playerImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/6a483e08c9e4c_download.jpeg?v=5.0';
             
             const monsterImg = new Image();
-            monsterImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=4.1';
+            monsterImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=5.0';
 
-            const bgMusic = new Audio('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/CRAZDIN!.mp3');
+            // Raw direct-download MP3 endpoint conversion for GitHub blob URL
+            const rawAudioUrl = "https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/Artful's%20Copyright%20Music%20Box%20(UNOFFICIAL%20UPLOAD).mp3";
+            const bgMusic = new Audio(rawAudioUrl);
             bgMusic.loop = false;
-            bgMusic.volume = 0.8;
+            bgMusic.volume = 0.9;
             
-            // Safely handle browser autoplay policy limitations
             const playAudioPromise = bgMusic.play();
             if (playAudioPromise !== undefined) {
                 playAudioPromise.catch(() => {
@@ -706,24 +707,25 @@
 
             let health = 100;
             let score = 0;
-            const scrollSpeed = 4.5;
+            const scrollSpeed = 4.0;
             const hitY = 100;
 
+            // Generate an extended 35-second chart sequence
             let notes = [];
-            for (let t = 2.5; t < 7.0; t += 0.45) {
+            for (let t = 2.0; t < 34.5; t += 0.6) {
                 let lane = Math.floor(Math.random() * 4);
                 notes.push({ time: t, lane: lane, hit: false, missed: false });
-                if (Math.random() > 0.4) {
-                    let lane2 = (lane + 2) % 4;
-                    notes.push({ time: t, lane: lane2, hit: false, missed: false });
+                if (Math.random() > 0.35) {
+                    let lane2 = (lane + 1) % 4;
+                    notes.push({ time: t + 0.3, lane: lane2, hit: false, missed: false });
                 }
             }
 
             const laneKeyGroups = [
-                ['ArrowLeft', 'a', 'A'],            // Lane 0 (Left)
-                ['ArrowDown', 's', 'S', 'f', 'F'],    // Lane 1 (Down)
-                ['ArrowUp', 'w', 'W', 'j', 'J'],      // Lane 2 (Up)
-                ['ArrowRight', 'd', 'D', 'k', 'K']    // Lane 3 (Right)
+                ['ArrowLeft', 'a', 'A'],            // Lane 0
+                ['ArrowDown', 's', 'S', 'f', 'F'],    // Lane 1
+                ['ArrowUp', 'w', 'W', 'j', 'J'],      // Lane 2
+                ['ArrowRight', 'd', 'D', 'k', 'K']    // Lane 3
             ];
 
             window.addEventListener('keydown', handleKeyPress);
@@ -746,7 +748,7 @@
                             if (Math.abs(noteY - hitY) < 55) {
                                 n.hit = true;
                                 score += 100;
-                                health = Math.min(100, health + 4);
+                                health = Math.min(100, health + 3);
                                 hitAny = true;
                                 break;
                             }
@@ -840,7 +842,7 @@
                         }
                         if (noteY < hitY - 40 && !n.missed) {
                             n.missed = true;
-                            health = Math.max(0, health - 4);
+                            health = Math.max(0, health - 3);
                             checkDeath();
                         }
                     }
@@ -849,8 +851,13 @@
                 fnfCtx.fillStyle = '#000000';
                 fnfCtx.font = '18px Arial, sans-serif';
                 fnfCtx.fillText(`Score: ${score}`, 360, 110);
+                
+                // Show time left for clarity
+                let timeLeft = Math.max(0, (35 - currentAudioTime)).toFixed(1);
+                fnfCtx.fillText(`Time: ${timeLeft}s`, 360, 135);
 
-                if (health > 0 && !bgMusic.ended && currentAudioTime < 6.8) {
+                // Force end sequence at exactly 35 seconds or when audio ends
+                if (health > 0 && currentAudioTime < 35.0 && !bgMusic.ended) {
                     requestAnimationFrame(fnfLoop);
                 } else {
                     bgMusic.pause();
