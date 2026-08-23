@@ -40,7 +40,7 @@
             max-width: 250px;
             height: auto;
             display: block;
-            pointer-events: none; /* Let clicks pass to the wrapper */
+            pointer-events: none;
         }
 
         @keyframes shake {
@@ -72,8 +72,9 @@
 
         #gameCanvas {
             display: none;
-            background: #000;
+            background: #020617;
             border: 2px solid #334155;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5);
         }
 
         #endScreen {
@@ -104,7 +105,7 @@
         <div class="counter" id="clickCounter">clicks: 0/13</div>
     </div>
 
-    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <canvas id="gameCanvas" width="800" height="450"></canvas>
     <div id="endScreen">more after this soon</div>
 
     <script>
@@ -121,9 +122,8 @@
             clickCount++;
             clickCounter.textContent = `clicks: ${clickCount}/13`;
             
-            // Trigger shake effect
             clickArea.classList.remove('shake');
-            void clickArea.offsetWidth; // force reflow
+            void clickArea.offsetWidth;
             clickArea.classList.add('shake');
 
             if (clickCount >= 13) {
@@ -135,42 +135,88 @@
             mainContainer.style.display = 'none';
             canvas.style.display = 'block';
 
-            let player = { x: 50, y: 200, width: 30, height: 30, vx: 0, vy: 0, speed: 4, jumpPower: -10, grounded: false };
-            let gravity = 0.5;
-            let keys = { Left: false, Right: false };
+            // Game variables
+            let player = { 
+                x: 50, y: 300, width: 28, height: 28, 
+                vx: 0, vy: 0, speed: 4.5, sprintSpeed: 8, 
+                jumpPower: -11.5, grounded: false 
+            };
+            
+            let gravity = 0.55;
+            let keys = { Left: false, Right: false, Shift: false };
+            
+            // Sprint & Trail mechanics
+            let stamina = 100;
+            let maxStamina = 100;
+            let staminaAlpha = 0; // For fading in/out the bar
+            let trail = [];
 
+            // Notification message state
+            let notification = {
+                text: "press [SHIFT] to sprint",
+                alpha: 1,
+                timer: 240 // frames to stay fully visible before fading
+            };
+
+            // Hard scrolling platform layout spanning across a wide level
             let platforms = [
-                { x: 0, y: 350, w: 800, h: 50 },
-                { x: 200, y: 260, w: 120, h: 20 },
-                { x: 400, y: 180, w: 120, h: 20 },
-                { x: 600, y: 100, w: 150, h: 20 }
+                { x: 0, y: 380, w: 450, h: 70 },
+                { x: 500, y: 320, w: 140, h: 20 },
+                { x: 720, y: 250, w: 100, h: 20 },
+                { x: 900, y: 300, w: 120, h: 20 },
+                { x: 1100, y: 220, w: 90, h: 20 },
+                { x: 1280, y: 160, w: 110, h: 20 },
+                { x: 1480, y: 230, w: 90, h: 20 },
+                { x: 1650, y: 300, w: 130, h: 20 },
+                { x: 1850, y: 220, w: 100, h: 20 },
+                { x: 2040, y: 150, w: 160, h: 30 } // Final goal platform
             ];
 
-            let goal = { x: 680, y: 40, w: 40, h: 60 };
+            let goal = { x: 2100, y: 80, w: 40, h: 70 };
 
             window.addEventListener('keydown', (e) => {
-                if (e.code === 'ArrowLeft') keys.Left = true;
-                if (e.code === 'ArrowRight') keys.Right = true;
-                if ((e.code === 'Space' || e.code === 'ArrowUp') && player.grounded) {
+                if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.Left = true;
+                if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.Right = true;
+                if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.Shift = true;
+                if ((e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') && player.grounded) {
                     player.vy = player.jumpPower;
                     player.grounded = false;
                 }
             });
 
             window.addEventListener('keyup', (e) => {
-                if (e.code === 'ArrowLeft') keys.Left = false;
-                if (e.code === 'ArrowRight') keys.Right = false;
+                if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.Left = false;
+                if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.Right = false;
+                if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.Shift = false;
             });
 
             function update() {
-                if (keys.Left) player.vx = -player.speed;
-                else if (keys.Right) player.vx = player.speed;
+                // Determine current speed based on sprint input and stamina
+                let isSprinting = keys.Shift && stamina > 0 && (keys.Left || keys.Right);
+                let currentSpeed = isSprinting ? player.sprintSpeed : player.speed;
+
+                if (keys.Left) player.vx = -currentSpeed;
+                else if (keys.Right) player.vx = currentSpeed;
                 else player.vx = 0;
+
+                // Handle stamina drain and recovery
+                if (isSprinting) {
+                    stamina = Math.max(0, stamina - 1.2);
+                    staminaAlpha = Math.min(1, staminaAlpha + 0.1); // Fade in
+                } else {
+                    stamina = Math.min(maxStamina, stamina + 0.6); // Recharges slowly
+                    if (stamina >= maxStamina && !keys.Shift) {
+                        staminaAlpha = Math.max(0, staminaAlpha - 0.05); // Fade out when full/inactive
+                    } else if (keys.Shift && stamina <= 0) {
+                        staminaAlpha = Math.max(0, staminaAlpha - 0.05); // Fade out if depleted
+                    }
+                }
 
                 player.x += player.vx;
                 player.vy += gravity;
                 player.y += player.vy;
 
+                // Collision with platforms
                 player.grounded = false;
                 for (let p of platforms) {
                     if (
@@ -185,9 +231,35 @@
                     }
                 }
 
-                if (player.x < 0) player.x = 0;
-                if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+                // Fall into the void boundary reset
+                if (player.y > canvas.height + 100) {
+                    player.x = 50;
+                    player.y = 300;
+                    player.vx = 0;
+                    player.vy = 0;
+                    stamina = maxStamina;
+                }
 
+                // Record trail positions while sprinting
+                if (isSprinting) {
+                    trail.push({ x: player.x, y: player.y, alpha: 0.6 });
+                }
+                // Update existing trail pieces (fade out)
+                for (let i = trail.length - 1; i >= 0; i--) {
+                    trail[i].alpha -= 0.08;
+                    if (trail[i].alpha <= 0) {
+                        trail.splice(i, 1);
+                    }
+                }
+
+                // Notification fading timer
+                if (notification.timer > 0) {
+                    notification.timer--;
+                } else {
+                    notification.alpha = Math.max(0, notification.alpha - 0.02);
+                }
+
+                // Win condition
                 if (
                     player.x < goal.x + goal.w &&
                     player.x + player.width > goal.x &&
@@ -204,22 +276,68 @@
             }
 
             function draw() {
-                ctx.fillStyle = '#0f172a';
+                ctx.fillStyle = '#020617';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                ctx.fillStyle = '#334155';
+                // Camera follow logic (smooth horizontal centering)
+                let cameraX = player.x - canvas.width / 2 + player.width / 2;
+                if (cameraX < 0) cameraX = 0;
+                if (cameraX > 2200 - canvas.width) cameraX = 2200 - canvas.width;
+
+                ctx.save();
+                ctx.translate(-cameraX, 0);
+
+                // Draw platforms
+                ctx.fillStyle = '#1e293b';
                 for (let p of platforms) {
                     ctx.fillRect(p.x, p.y, p.w, p.h);
+                    ctx.strokeStyle = '#334155';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(p.x, p.y, p.w, p.h);
                 }
 
+                // Draw goal marker
                 ctx.fillStyle = '#38bdf8';
                 ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
 
+                // Draw sprint motion trail
+                for (let t of trail) {
+                    ctx.fillStyle = `rgba(56, 189, 248, ${t.alpha})`;
+                    ctx.fillRect(t.x, t.y, player.width, player.height);
+                }
+
+                // Draw player (black cube)
                 ctx.fillStyle = '#000000';
                 ctx.fillRect(player.x, player.y, player.width, player.height);
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(player.x, player.y, player.width, player.height);
+
+                ctx.restore();
+
+                // Draw fading notification banner (fixed on screen)
+                if (notification.alpha > 0) {
+                    ctx.save();
+                    ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                    ctx.fillStyle = `rgba(226, 232, 240, ${notification.alpha})`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText(notification.text, canvas.width / 2, 50);
+                    ctx.restore();
+                }
+
+                // Draw fading stamina bar (fixed on screen top right)
+                if (staminaAlpha > 0) {
+                    ctx.save();
+                    ctx.globalAlpha = staminaAlpha;
+                    ctx.fillStyle = '#1e293b';
+                    ctx.fillRect(canvas.width - 130, 20, 100, 10);
+                    ctx.fillStyle = '#38bdf8';
+                    ctx.fillRect(canvas.width - 130, 20, (stamina / maxStamina) * 100, 10);
+                    ctx.strokeStyle = '#334155';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(canvas.width - 130, 20, 100, 10);
+                    ctx.restore();
+                }
             }
 
             update();
