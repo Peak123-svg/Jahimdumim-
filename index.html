@@ -202,6 +202,20 @@
             text-transform: lowercase;
             z-index: 10;
         }
+
+        /* Update 1 Watermark */
+        #updateWatermark {
+            position: fixed;
+            bottom: 15px;
+            left: 20px;
+            color: rgba(255, 255, 255, 0.4);
+            font-family: monospace;
+            font-size: 0.9rem;
+            pointer-events: none;
+            z-index: 100;
+            text-transform: lowercase;
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
@@ -239,6 +253,9 @@
     </div>
 
     <div id="endScreen">soon after this</div>
+
+    <!-- Corner Version Text -->
+    <div id="updateWatermark">update 1</div>
 
     <script>
         const clickArea = document.getElementById('clickArea');
