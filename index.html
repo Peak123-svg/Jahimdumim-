@@ -175,7 +175,7 @@
     
     <!-- 3D Survival Mini-Game UI -->
     <div id="survivalContainer">
-        <div id="survivalHUD">Artifacts: 0 / 5</div>
+        <div id="survivalHUD">Artifacts: 0 / 7</div>
         <div id="crosshair"></div>
     </div>
 
@@ -227,20 +227,23 @@
             let trail = [];
 
             let notification = {
-                text: "press [SHIFT] to sprint",
+                text: "press [SHIFT] to sprint over long gaps",
                 alpha: 1,
                 timer: 200
             };
 
             let platforms = [
-                { x: 0, y: 380, w: 300, h: 70 },
-                { x: 380, y: 330, w: 120, h: 15 },
-                { x: 580, y: 280, w: 120, h: 15 },
-                { x: 780, y: 230, w: 150, h: 20 }
+                { x: 0, y: 380, w: 220, h: 70 },
+                { x: 300, y: 330, w: 90, h: 15 },
+                { x: 470, y: 270, w: 90, h: 15 },
+                { x: 640, y: 220, w: 90, h: 15 },
+                { x: 810, y: 170, w: 90, h: 15 },
+                { x: 990, y: 130, w: 90, h: 15 },
+                { x: 1180, y: 90, w: 140, h: 20 }
             ];
 
-            let goal = { x: 840, y: 160, w: 40, h: 70 };
-            let worldWidth = 980;
+            let goal = { x: 1240, y: 20, w: 40, h: 70 };
+            let worldWidth = 1400;
 
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.Left = true;
@@ -397,7 +400,7 @@
         }
 
         // ==========================================
-        // 3D SURVIVAL GAME (Simplistic & Challenging)
+        // 3D SURVIVAL GAME (Larger Maze, 7 Artifacts, Aggressive Monster)
         // ==========================================
         function start3DSurvivalGame() {
             const container = document.getElementById('survivalContainer');
@@ -415,14 +418,12 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             container.appendChild(renderer.domElement);
 
-            // Simple Flat Floor (matching platformer background aesthetic)
-            const floorGeo = new THREE.PlaneGeometry(60, 60);
+            const floorGeo = new THREE.PlaneGeometry(80, 80);
             const floorMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            // Floor White Border Outline
             const floorEdges = new THREE.EdgesGeometry(floorGeo);
             const floorLine = new THREE.LineSegments(floorEdges, new THREE.LineBasicMaterial({ color: 0xffffff }));
             floorLine.rotation.x = -Math.PI / 2;
@@ -430,7 +431,6 @@
 
             const walls = [];
 
-            // Helper to build simplistic black walls with stark white outlines
             function createWall(x, z, w, d) {
                 const geom = new THREE.BoxGeometry(w, 3, d);
                 const mesh = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({ color: 0x000000 }));
@@ -444,27 +444,33 @@
                 walls.push({ x, z, w, d });
             }
 
-            // Maze / Room Layout
-            createWall(0, -30, 60, 1);
-            createWall(0, 30, 60, 1);
-            createWall(-30, 0, 1, 60);
-            createWall(30, 0, 1, 60);
-            createWall(-10, -10, 15, 2);
-            createWall(10, 10, 2, 15);
-            createWall(-15, 10, 10, 2);
-            createWall(15, -10, 2, 10);
+            createWall(0, -40, 80, 1);
+            createWall(0, 40, 80, 1);
+            createWall(-40, 0, 1, 80);
+            createWall(40, 0, 1, 80);
+            
+            createWall(-15, -20, 25, 2);
+            createWall(15, 20, 25, 2);
+            createWall(-20, 15, 2, 25);
+            createWall(20, -15, 2, 25);
+            createWall(0, -10, 2, 20);
+            createWall(-10, 0, 20, 2);
+            createWall(25, 25, 15, 2);
+            createWall(-25, -25, 2, 15);
 
-            // 5 Artifacts (Black boxes with bright white outlines + counter)
+            // Exactly 7 Artifacts
             let collectedArtifacts = 0;
             const artifacts = [];
             const artifactGeo = new THREE.BoxGeometry(1, 1, 1);
             
             const positions = [
-                {x: -15, z: -15},
-                {x: 18, z: -18},
-                {x: -20, z: 20},
-                {x: 20, z: 15},
-                {x: 0, z: -22}
+                {x: -32, z: -32},
+                {x: 32, z: -32},
+                {x: -32, z: 32},
+                {x: 32, z: 32},
+                {x: 0, z: -35},
+                {x: 0, z: 35},
+                {x: -30, z: 0}
             ];
 
             positions.forEach(pos => {
@@ -478,7 +484,6 @@
                 artifacts.push(boxMesh);
             });
 
-            // Baldi-like Billboard Sprite
             const textureLoader = new THREE.TextureLoader();
             let monsterMesh = null;
             let isDead = false;
@@ -487,14 +492,13 @@
                 const monsterMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
                 monsterMesh = new THREE.Sprite(monsterMat);
                 monsterMesh.scale.set(2.2, 3.2, 1);
-                monsterMesh.position.set(0, 1.6, -20);
+                monsterMesh.position.set(0, 1.6, -30);
                 scene.add(monsterMesh);
             });
 
             let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
             let pitch = 0, yaw = 0;
 
-            // Proper Click-to-Lock Camera Controller
             container.addEventListener('click', () => {
                 if (!isDead) {
                     container.requestPointerLock();
@@ -568,9 +572,9 @@
                         scene.remove(art);
                         artifacts[index] = null;
                         collectedArtifacts++;
-                        hud.innerText = `Artifacts: ${collectedArtifacts} / 5`;
+                        hud.innerText = `Artifacts: ${collectedArtifacts} / 7`;
 
-                        if (collectedArtifacts >= 5) {
+                        if (collectedArtifacts >= 7) {
                             if (document.pointerLockElement) document.exitPointerLock();
                             container.style.display = 'none';
                             endScreen.style.display = 'flex';
@@ -578,9 +582,8 @@
                     }
                 });
 
-                // Faster, Aggressive Monster Chasing AI
                 if (monsterMesh) {
-                    const monsterSpeed = 0.055; // Increased speed for challenge
+                    const monsterSpeed = 0.07;
                     const directionToPlayer = new THREE.Vector3()
                         .subVectors(camera.position, monsterMesh.position);
                     directionToPlayer.y = 0;
@@ -588,7 +591,6 @@
 
                     monsterMesh.position.addScaledVector(directionToPlayer, monsterSpeed);
 
-                    // Jumpscare Catch Trigger
                     if (monsterMesh.position.distanceTo(camera.position) < 1.2) {
                         isDead = true;
                         if (document.pointerLockElement) document.exitPointerLock();
@@ -597,12 +599,12 @@
                         setTimeout(() => {
                             jumpscare.style.display = 'none';
                             camera.position.set(0, 1.6, 5);
-                            monsterMesh.position.set(0, 1.6, -20);
+                            monsterMesh.position.set(0, 1.6, -30);
                             yaw = 0;
                             pitch = 0;
                             camera.rotation.set(0, 0, 0);
                             isDead = false;
-                        }, 2000);
+                        }, 1500);
                     }
                 }
 
