@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>update</title>
+    <title>update 2</title>
     <!-- Include Three.js for the 3D survival game section -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -241,7 +241,7 @@
     <div id="endScreen">soon after this</div>
 
     <!-- Corner Version Text -->
-    <div id="updateWatermark">update</div>
+    <div id="updateWatermark">update 2</div>
 
     <script>
         const clickArea = document.getElementById('clickArea');
@@ -250,10 +250,11 @@
         const ctx = canvas.getContext('2d');
         const endScreen = document.getElementById('endScreen');
 
-        let clickCount = 0;
+        let clickCount = parseInt(localStorage.getItem('clickCount') || '0');
 
         clickArea.addEventListener('click', () => {
             clickCount++;
+            localStorage.setItem('clickCount', clickCount);
             
             clickArea.classList.remove('shake');
             void clickArea.offsetWidth;
@@ -263,6 +264,10 @@
                 startGame();
             }
         });
+
+        if (clickCount >= 13) {
+            startGame();
+        }
 
         function startGame() {
             mainContainer.style.display = 'none';
@@ -542,7 +547,7 @@
             const textureLoader = new THREE.TextureLoader();
             let monsterMesh = null;
             let isDead = false;
-            let gameRunning = true; // Flag to track when 3D game stops
+            let gameRunning = true;
             let animationFrameId = null;
             
             textureLoader.load('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png', (texture) => {
@@ -635,7 +640,7 @@
                         hud.innerText = `Artifacts: ${collectedArtifacts} / 7`;
 
                         if (collectedArtifacts >= 7) {
-                            gameRunning = false; // Stop 3D loop completely
+                            gameRunning = false;
                             cancelAnimationFrame(animationFrameId);
                             if (document.pointerLockElement) document.exitPointerLock();
                             container.style.display = 'none';
@@ -677,7 +682,7 @@
         }
 
         // ==========================================
-        // FNF RHYTHM BATTLE SECTION (OG Difficulty & Setup Restored)
+        // FNF RHYTHM BATTLE SECTION
         // ==========================================
         function startFNFBattle() {
             const fnfContainer = document.getElementById('fnfContainer');
@@ -692,7 +697,6 @@
             const monsterImg = new Image();
             monsterImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png';
 
-            // Load and play custom user audio track
             const bgMusic = new Audio('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/CRAZDIN!.mp3');
             bgMusic.loop = true;
             bgMusic.volume = 0.8;
@@ -700,10 +704,9 @@
 
             let health = 50; 
             let score = 0;
-            const scrollSpeed = 6; // Restored OG fast high difficulty speed
+            const scrollSpeed = 6; 
             const hitY = 100;
 
-            // Restored OG dense and intense note chart
             let notes = [];
             for (let t = 1; t < 35; t += 0.35) {
                 let lane = Math.floor(Math.random() * 4);
