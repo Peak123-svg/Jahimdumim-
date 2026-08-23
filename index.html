@@ -121,14 +121,14 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: #050505;
+            background: #111;
             z-index: 15;
             overflow: hidden;
         }
 
         #fnfCanvas {
             display: block;
-            background: #000;
+            background: #181818;
             margin: 0 auto;
         }
 
@@ -162,7 +162,7 @@
             text-shadow: 0 0 10px #ff0000;
         }
 
-        /* Crash Screen */
+        /* Blank Red Crash Screen */
         #crashScreen {
             display: none;
             position: fixed;
@@ -170,19 +170,8 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: #990000;
-            color: #ffffff;
+            background: #ff0000;
             z-index: 50;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-family: monospace;
-        }
-
-        #crashScreen h1 {
-            font-size: 3rem;
-            color: #fff;
-            margin-bottom: 10px;
         }
 
         #endScreen {
@@ -203,7 +192,7 @@
             z-index: 10;
         }
 
-        /* Update 1 Watermark */
+        /* Update Watermark */
         #updateWatermark {
             position: fixed;
             bottom: 15px;
@@ -247,15 +236,12 @@
     </div>
 
     <!-- Crash Screen Overlay -->
-    <div id="crashScreen">
-        <h1>FATAL_EXCEPTION</h1>
-        <p>GAME CRASHED DUE TO RHYTHM FAILURE.</p>
-    </div>
+    <div id="crashScreen"></div>
 
     <div id="endScreen">soon after this</div>
 
     <!-- Corner Version Text -->
-    <div id="updateWatermark">update 1</div>
+    <div id="updateWatermark">update</div>
 
     <script>
         const clickArea = document.getElementById('clickArea');
@@ -556,6 +542,8 @@
             const textureLoader = new THREE.TextureLoader();
             let monsterMesh = null;
             let isDead = false;
+            let gameRunning = true; // Flag to track when 3D game stops
+            let animationFrameId = null;
             
             textureLoader.load('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png', (texture) => {
                 const monsterMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
@@ -569,13 +557,13 @@
             let pitch = 0, yaw = 0;
 
             container.addEventListener('click', () => {
-                if (!isDead) {
+                if (!isDead && gameRunning) {
                     container.requestPointerLock();
                 }
             });
 
             window.addEventListener('mousemove', (e) => {
-                if (!isDead && document.pointerLockElement === container) {
+                if (gameRunning && !isDead && document.pointerLockElement === container) {
                     yaw -= e.movementX * 0.003;
                     pitch -= e.movementY * 0.003;
                     pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
@@ -587,6 +575,7 @@
             });
 
             window.addEventListener('keydown', (e) => {
+                if (!gameRunning) return;
                 if (e.key === 'w' || e.key === 'W') moveForward = true;
                 if (e.key === 's' || e.key === 'S') moveBackward = true;
                 if (e.key === 'a' || e.key === 'A') moveLeft = true;
@@ -594,6 +583,7 @@
             });
 
             window.addEventListener('keyup', (e) => {
+                if (!gameRunning) return;
                 if (e.key === 'w' || e.key === 'W') moveForward = false;
                 if (e.key === 's' || e.key === 'S') moveBackward = false;
                 if (e.key === 'a' || e.key === 'A') moveLeft = false;
@@ -601,7 +591,8 @@
             });
 
             function animate3D() {
-                requestAnimationFrame(animate3D);
+                if (!gameRunning) return;
+                animationFrameId = requestAnimationFrame(animate3D);
                 if (isDead) return;
 
                 const speed = 0.09;
@@ -644,6 +635,8 @@
                         hud.innerText = `Artifacts: ${collectedArtifacts} / 7`;
 
                         if (collectedArtifacts >= 7) {
+                            gameRunning = false; // Stop 3D loop completely
+                            cancelAnimationFrame(animationFrameId);
                             if (document.pointerLockElement) document.exitPointerLock();
                             container.style.display = 'none';
                             startFNFBattle();
@@ -651,7 +644,7 @@
                     }
                 });
 
-                if (monsterMesh) {
+                if (monsterMesh && gameRunning) {
                     const monsterSpeed = 0.07;
                     const directionToPlayer = new THREE.Vector3()
                         .subVectors(camera.position, monsterMesh.position);
@@ -684,7 +677,7 @@
         }
 
         // ==========================================
-        // FNF RHYTHM BATTLE SECTION
+        // FNF RHYTHM BATTLE SECTION (OG Difficulty & Setup Restored)
         // ==========================================
         function startFNFBattle() {
             const fnfContainer = document.getElementById('fnfContainer');
@@ -699,50 +692,27 @@
             const monsterImg = new Image();
             monsterImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png';
 
+            // Load and play custom user audio track
+            const bgMusic = new Audio('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/CRAZDIN!.mp3');
+            bgMusic.loop = true;
+            bgMusic.volume = 0.8;
+            bgMusic.play().catch(e => console.log("Audio play blocked, clicking may resume: ", e));
+
             let health = 50; 
             let score = 0;
-            let songTime = 0;
-            const scrollSpeed = 6;
+            const scrollSpeed = 6; // Restored OG fast high difficulty speed
             const hitY = 100;
 
+            // Restored OG dense and intense note chart
             let notes = [];
-            for (let t = 1; t < 30; t += 0.35) {
+            for (let t = 1; t < 35; t += 0.35) {
                 let lane = Math.floor(Math.random() * 4);
-                notes.push({ time: t, lane: lane, hit: false });
+                notes.push({ time: t, lane: lane, hit: false, missed: false });
                 if (Math.random() > 0.4) {
                     let lane2 = (lane + 2) % 4;
-                    notes.push({ time: t, lane: lane2, hit: false });
+                    notes.push({ time: t, lane: lane2, hit: false, missed: false });
                 }
             }
-
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-            function playBeep(freq, duration = 0.1) {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration);
-            }
-
-            let songInterval = setInterval(() => {
-                songTime += 0.1;
-                let freqs = [150, 220, 300, 440];
-                playBeep(freqs[Math.floor(Math.random() * freqs.length)], 0.08);
-
-                if (songTime > 12 && health > 0) {
-                    clearInterval(songInterval);
-                    window.removeEventListener('keydown', handleKeyPress);
-                    fnfContainer.style.display = 'none';
-                    endScreen.style.display = 'flex';
-                }
-            }, 100);
 
             const laneKeys = ['ArrowLeft', 'ArrowDown', 'ArrowUp', 'ArrowRight'];
             const altKeys = ['a', 's', 'w', 'd'];
@@ -757,8 +727,9 @@
                 if (lane !== -1) {
                     let hitAny = false;
                     for (let n of notes) {
-                        if (!n.hit && n.lane === lane) {
-                            let noteY = hitY + (n.time - songTime) * 60 * scrollSpeed;
+                        if (!n.hit && !n.missed && n.lane === lane) {
+                            let currentAudioTime = bgMusic.currentTime;
+                            let noteY = hitY + (n.time - currentAudioTime) * 60 * scrollSpeed;
                             if (Math.abs(noteY - hitY) < 45) {
                                 n.hit = true;
                                 score += 100;
@@ -777,65 +748,100 @@
 
             function checkDeath() {
                 if (health <= 0) {
-                    clearInterval(songInterval);
+                    bgMusic.pause();
                     window.removeEventListener('keydown', handleKeyPress);
                     fnfContainer.style.display = 'none';
-                    crashScreen.style.display = 'flex';
+                    crashScreen.style.display = 'block';
                 }
             }
 
+            function drawArrow(ctx, x, y, lane, color) {
+                ctx.save();
+                ctx.fillStyle = color;
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.translate(x + 25, y + 25);
+                
+                let rot = 0;
+                if (lane === 0) rot = -Math.PI / 2;     // Left
+                if (lane === 1) rot = Math.PI;          // Down
+                if (lane === 2) rot = 0;                // Up
+                if (lane === 3) rot = Math.PI / 2;      // Right
+                ctx.rotate(rot);
+
+                ctx.moveTo(0, -18);
+                ctx.lineTo(14, 2);
+                ctx.lineTo(5, 2);
+                ctx.lineTo(5, 16);
+                ctx.lineTo(-5, 16);
+                ctx.lineTo(-5, 2);
+                ctx.lineTo(-14, 2);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            const arrowColors = ['#ff0055', '#00ffff', '#12fa05', '#ffaa00'];
+
             function fnfLoop() {
-                fnfCtx.fillStyle = '#000000';
+                fnfCtx.fillStyle = '#111111';
                 fnfCtx.fillRect(0, 0, fnfCanvas.width, fnfCanvas.height);
 
+                let currentAudioTime = bgMusic.currentTime;
+
                 if (monsterImg.complete) {
-                    fnfCtx.drawImage(monsterImg, 120, 180, 150, 200);
+                    fnfCtx.drawImage(monsterImg, 100, 180, 140, 180);
                 }
                 if (playerImg.complete) {
-                    fnfCtx.drawImage(playerImg, 530, 180, 160, 200);
+                    fnfCtx.drawImage(playerImg, 560, 180, 140, 180);
                 }
 
+                fnfCtx.fillStyle = '#555';
+                fnfCtx.fillRect(198, 48, 404, 24);
                 fnfCtx.fillStyle = '#ff0000';
                 fnfCtx.fillRect(200, 50, 400, 20);
                 fnfCtx.fillStyle = '#00ff00';
                 fnfCtx.fillRect(200, 50, (health / 100) * 400, 20);
-                fnfCtx.strokeStyle = '#ffffff';
-                fnfCtx.lineWidth = 2;
-                fnfCtx.strokeRect(200, 50, 400, 20);
+
+                if (monsterImg.complete) fnfCtx.drawImage(monsterImg, 160, 40, 40, 40);
+                if (playerImg.complete) fnfCtx.drawImage(playerImg, 600, 40, 40, 40);
 
                 let startX = 280;
                 let laneWidth = 60;
                 for (let i = 0; i < 4; i++) {
                     let lx = startX + i * laneWidth;
-                    fnfCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+                    fnfCtx.strokeStyle = 'rgba(255,255,255,0.15)';
                     fnfCtx.strokeRect(lx, 0, laneWidth, fnfCanvas.height);
 
-                    fnfCtx.fillStyle = '#ffffff';
-                    fnfCtx.fillRect(lx + 10, hitY, 40, 40);
+                    drawArrow(fnfCtx, lx + 5, hitY, i, 'rgba(255,255,255,0.4)');
                 }
 
                 for (let n of notes) {
                     if (!n.hit) {
-                        let noteY = hitY + (n.time - songTime) * 60 * scrollSpeed;
-                        let nx = startX + n.lane * laneWidth + 10;
-                        if (noteY > -50 && noteY < fnfCanvas.height + 50) {
-                            fnfCtx.fillStyle = n.lane % 2 === 0 ? '#ff0055' : '#00ffff';
-                            fnfCtx.fillRect(nx, noteY, 40, 40);
+                        let noteY = hitY + (n.time - currentAudioTime) * 60 * scrollSpeed;
+                        let nx = startX + n.lane * laneWidth + 5;
+                        if (noteY > -60 && noteY < fnfCanvas.height + 60) {
+                            drawArrow(fnfCtx, nx, noteY, n.lane, arrowColors[n.lane]);
                         }
                         if (noteY < hitY - 40 && !n.missed) {
                             n.missed = true;
-                            health = Math.max(0, health - 5);
+                            health = Math.max(0, health - 6);
                             checkDeath();
                         }
                     }
                 }
 
                 fnfCtx.fillStyle = '#ffffff';
-                fnfCtx.font = '20px monospace';
-                fnfCtx.fillText(`Score: ${score}`, 350, 100);
+                fnfCtx.font = '18px monospace';
+                fnfCtx.fillText(`Score: ${score}`, 360, 110);
 
-                if (health > 0 && songTime <= 12) {
+                if (health > 0 && !bgMusic.ended) {
                     requestAnimationFrame(fnfLoop);
+                } else if (bgMusic.ended) {
+                    fnfContainer.style.display = 'none';
+                    endScreen.style.display = 'flex';
                 }
             }
 
