@@ -17,6 +17,7 @@
             color: #f8fafc;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             text-align: center;
+            overflow: hidden;
         }
 
         .container {
@@ -27,8 +28,28 @@
         img {
             max-width: 250px;
             height: auto;
-            /* Removed border-radius, box-shadow, and background-related styles */
             margin-bottom: 24px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        /* Shake animation keyframes */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .shake {
+            animation: shake 0.3s;
         }
 
         h1 {
@@ -37,16 +58,170 @@
             letter-spacing: -0.025em;
             margin: 0;
             color: #e2e8f0;
-            text-transform: lowercase; /* Forces all text lowercase via CSS */
+            text-transform: lowercase;
+        }
+
+        #gameCanvas {
+            display: none;
+            background: #000;
+            border: 2px solid #334155;
+        }
+
+        #endScreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            color: #fff;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: 500;
+            letter-spacing: -0.025em;
+            text-transform: lowercase;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/1274_Sem_Titulo_20250617215305.webp" alt="update image">
+    <div class="container" id="mainContainer">
+        <img id="updateImg" src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/1274_Sem_Titulo_20250617215305.webp" alt="update image">
         <h1>he will update you</h1>
     </div>
 
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <div id="endScreen">more after this soon</div>
+
+    <script>
+        const img = document.getElementById('updateImg');
+        const mainContainer = document.getElementById('mainContainer');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const endScreen = document.getElementById('endScreen');
+
+        let clickCount = 0;
+
+        img.addEventListener('click', () => {
+            clickCount++;
+            
+            // Trigger shake effect
+            img.classList.remove('shake');
+            void img.offsetWidth; // force reflow
+            img.classList.add('shake');
+
+            if (clickCount >= 13) {
+                startGame();
+            }
+        });
+
+        function startGame() {
+            mainContainer.style.display = 'none';
+            canvas.style.display = 'block';
+
+            // Game variables
+            let player = { x: 50, y: 200, width: 30, height: 30, vx: 0, vy: 0, speed: 4, jumpPower: -10, grounded: false };
+            let gravity = 0.5;
+            let keys = { ArrowLeft: false, ArrowRight: false, Space: false };
+
+            // Platforms (x, y, w, h)
+            let platforms = [
+                { x: 0, y: 350, w: 800, h: 50 },
+                { x: 200, y: 260, w: 120, h: 20 },
+                { x: 400, y: 180, w: 120, h: 20 },
+                { x: 600, y: 100, w: 150, h: 20 }
+            ];
+
+            // Goal zone to beat the game
+            let goal = { x: 680, y: 40, w: 40, h: 60 };
+
+            window.addEventListener('keydown', (e) => {
+                if (e.code === 'ArrowLeft') keys.Left = true;
+                if (e.code === 'ArrowRight') keys.Right = true;
+                if (e.code === 'Space' || e.code === 'ArrowUp') {
+                    if (player.grounded) {
+                        player.vy = player.jumpPower;
+                        player.grounded = false;
+                    }
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                if (e.code === 'ArrowLeft') keys.Left = false;
+                if (e.code === 'ArrowRight') keys.Right = false;
+            });
+
+            function update() {
+                // Movement
+                if (keys.Left) player.vx = -player.speed;
+                else if (keys.Right) player.vx = player.speed;
+                else player.vx = 0;
+
+                player.x += player.vx;
+                player.vy += gravity;
+                player.y += player.vy;
+
+                // Collision with platforms
+                player.grounded = false;
+                for (let p of platforms) {
+                    if (
+                        player.x < p.x + p.w &&
+                        player.x + player.width > p.x &&
+                        player.y + player.height > p.y &&
+                        player.y + player.height - player.vy <= p.y
+                    ) {
+                        player.y = p.y - player.height;
+                        player.vy = 0;
+                        player.grounded = true;
+                    }
+                }
+
+                // Canvas boundaries
+                if (player.x < 0) player.x = 0;
+                if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+                // Win condition (reaching the goal)
+                if (
+                    player.x < goal.x + goal.w &&
+                    player.x + player.width > goal.x &&
+                    player.y < goal.y + goal.h &&
+                    player.y + player.height > goal.y
+                ) {
+                    canvas.style.display = 'none';
+                    endScreen.style.display = 'flex';
+                    return;
+                }
+
+                draw();
+                requestAnimationFrame(update);
+            }
+
+            function draw() {
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw platforms
+                ctx.fillStyle = '#334155';
+                for (let p of platforms) {
+                    ctx.fillRect(p.x, p.y, p.w, p.h);
+                }
+
+                // Draw goal flag/zone
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
+
+                // Draw black cube player
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(player.x, player.y, player.width, player.height);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(player.x, player.y, player.width, player.height);
+            }
+
+            update();
+        }
+    </script>
 </body>
 </html>
