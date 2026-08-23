@@ -689,7 +689,20 @@
             const bgMusic = new Audio('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/CRAZDIN!.mp3');
             bgMusic.loop = false;
             bgMusic.volume = 0.8;
-            bgMusic.play().catch(e => console.log("Audio play blocked, clicking may resume: ", e));
+            
+            // Safely handle browser autoplay policy limitations
+            const playAudioPromise = bgMusic.play();
+            if (playAudioPromise !== undefined) {
+                playAudioPromise.catch(() => {
+                    const resumeAudio = () => {
+                        bgMusic.play();
+                        window.removeEventListener('click', resumeAudio);
+                        window.removeEventListener('keydown', resumeAudio);
+                    };
+                    window.addEventListener('click', resumeAudio);
+                    window.addEventListener('keydown', resumeAudio);
+                });
+            }
 
             let health = 100;
             let score = 0;
@@ -707,10 +720,10 @@
             }
 
             const laneKeyGroups = [
-                ['ArrowLeft', 'a', 'A'],           // Lane 0 (Left)
-                ['ArrowDown', 's', 'S', 'f', 'F'],   // Lane 1 (Down)
-                ['ArrowUp', 'w', 'W', 'j', 'J'],     // Lane 2 (Up)
-                ['ArrowRight', 'd', 'D', 'k', 'K']   // Lane 3 (Right)
+                ['ArrowLeft', 'a', 'A'],            // Lane 0 (Left)
+                ['ArrowDown', 's', 'S', 'f', 'F'],    // Lane 1 (Down)
+                ['ArrowUp', 'w', 'W', 'j', 'J'],      // Lane 2 (Up)
+                ['ArrowRight', 'd', 'D', 'k', 'K']    // Lane 3 (Right)
             ];
 
             window.addEventListener('keydown', handleKeyPress);
