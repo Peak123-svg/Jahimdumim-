@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>update 2</title>
+    <title>update 3</title>
     <!-- Include Three.js for the 3D survival game section -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -241,7 +241,7 @@
     <div id="endScreen">soon after this</div>
 
     <!-- Corner Version Text -->
-    <div id="updateWatermark">update 2</div>
+    <div id="updateWatermark">update 3</div>
 
     <script>
         const clickArea = document.getElementById('clickArea');
@@ -250,11 +250,11 @@
         const ctx = canvas.getContext('2d');
         const endScreen = document.getElementById('endScreen');
 
-        let clickCount = parseInt(localStorage.getItem('clickCount') || '0');
+        // Progress is no longer saved to localStorage; it starts fresh on load
+        let clickCount = 0;
 
         clickArea.addEventListener('click', () => {
             clickCount++;
-            localStorage.setItem('clickCount', clickCount);
             
             clickArea.classList.remove('shake');
             void clickArea.offsetWidth;
@@ -264,10 +264,6 @@
                 startGame();
             }
         });
-
-        if (clickCount >= 13) {
-            startGame();
-        }
 
         function startGame() {
             mainContainer.style.display = 'none';
@@ -682,7 +678,7 @@
         }
 
         // ==========================================
-        // FNF RHYTHM BATTLE SECTION
+        // FNF RHYTHM BATTLE SECTION (Fixed for 6s Song)
         // ==========================================
         function startFNFBattle() {
             const fnfContainer = document.getElementById('fnfContainer');
@@ -698,17 +694,17 @@
             monsterImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png';
 
             const bgMusic = new Audio('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/CRAZDIN!.mp3');
-            bgMusic.loop = true;
+            bgMusic.loop = false;
             bgMusic.volume = 0.8;
             bgMusic.play().catch(e => console.log("Audio play blocked, clicking may resume: ", e));
 
             let health = 50; 
             let score = 0;
-            const scrollSpeed = 6; 
+            const scrollSpeed = 5; 
             const hitY = 100;
 
             let notes = [];
-            for (let t = 1; t < 35; t += 0.35) {
+            for (let t = 0.5; t < 5.5; t += 0.3) {
                 let lane = Math.floor(Math.random() * 4);
                 notes.push({ time: t, lane: lane, hit: false, missed: false });
                 if (Math.random() > 0.4) {
@@ -840,9 +836,11 @@
                 fnfCtx.font = '18px monospace';
                 fnfCtx.fillText(`Score: ${score}`, 360, 110);
 
-                if (health > 0 && !bgMusic.ended) {
+                if (health > 0 && !bgMusic.ended && currentAudioTime < 5.8) {
                     requestAnimationFrame(fnfLoop);
-                } else if (bgMusic.ended) {
+                } else {
+                    bgMusic.pause();
+                    window.removeEventListener('keydown', handleKeyPress);
                     fnfContainer.style.display = 'none';
                     endScreen.style.display = 'flex';
                 }
