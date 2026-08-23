@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>update 3</title>
+    <title>update 4</title>
     <!-- Include Three.js for the 3D survival game section -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -211,7 +211,7 @@
 
     <div class="container" id="mainContainer">
         <div class="image-wrapper" id="clickArea">
-            <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/1274_Sem_Titulo_20250617215305.webp" alt="update image">
+            <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/1274_Sem_Titulo_20250617215305.webp?v=4" alt="update image">
         </div>
         <h1>he will update you</h1>
     </div>
@@ -231,7 +231,7 @@
 
     <!-- Custom Jumpscare Overlay -->
     <div id="jumpscareScreen">
-        <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png" alt="jumpscare">
+        <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=4" alt="jumpscare">
         <h2>YOU DIED</h2>
     </div>
 
@@ -241,7 +241,7 @@
     <div id="endScreen">soon after this</div>
 
     <!-- Corner Version Text -->
-    <div id="updateWatermark">update 3</div>
+    <div id="updateWatermark">update 4</div>
 
     <script>
         const clickArea = document.getElementById('clickArea');
@@ -250,7 +250,6 @@
         const ctx = canvas.getContext('2d');
         const endScreen = document.getElementById('endScreen');
 
-        // Always start fresh at 0 clicks on reload
         let clickCount = 0;
 
         clickArea.addEventListener('click', () => {
@@ -546,7 +545,7 @@
             let gameRunning = true;
             let animationFrameId = null;
             
-            textureLoader.load('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png', (texture) => {
+            textureLoader.load('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=4', (texture) => {
                 const monsterMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
                 monsterMesh = new THREE.Sprite(monsterMat);
                 monsterMesh.scale.set(2.2, 3.2, 1);
@@ -678,7 +677,7 @@
         }
 
         // ==========================================
-        // FNF RHYTHM BATTLE SECTION (Fixed for 6s Song)
+        // FNF RHYTHM BATTLE SECTION
         // ==========================================
         function startFNFBattle() {
             const fnfContainer = document.getElementById('fnfContainer');
@@ -688,23 +687,23 @@
             fnfContainer.style.display = 'block';
 
             const playerImg = new Image();
-            playerImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/6a483e08c9e4c_download.jpeg';
+            playerImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/6a483e08c9e4c_download.jpeg?v=4';
             
             const monsterImg = new Image();
-            monsterImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png';
+            monsterImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=4';
 
             const bgMusic = new Audio('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/CRAZDIN!.mp3');
             bgMusic.loop = false;
             bgMusic.volume = 0.8;
             bgMusic.play().catch(e => console.log("Audio play blocked, clicking may resume: ", e));
 
-            let health = 50; 
+            let health = 100;
             let score = 0;
-            const scrollSpeed = 5; 
+            const scrollSpeed = 4.5;
             const hitY = 100;
 
             let notes = [];
-            for (let t = 0.5; t < 5.5; t += 0.3) {
+            for (let t = 2.5; t < 7.0; t += 0.45) {
                 let lane = Math.floor(Math.random() * 4);
                 notes.push({ time: t, lane: lane, hit: false, missed: false });
                 if (Math.random() > 0.4) {
@@ -713,15 +712,23 @@
                 }
             }
 
-            const laneKeys = ['ArrowLeft', 'ArrowDown', 'ArrowUp', 'ArrowRight'];
-            const altKeys = ['a', 's', 'w', 'd'];
+            const laneKeyGroups = [
+                ['ArrowLeft', 'a', 'A'],           // Lane 0 (Left)
+                ['ArrowDown', 's', 'S', 'f', 'F'],   // Lane 1 (Down)
+                ['ArrowUp', 'w', 'W', 'j', 'J'],     // Lane 2 (Up)
+                ['ArrowRight', 'd', 'D', 'k', 'K']   // Lane 3 (Right)
+            ];
 
             window.addEventListener('keydown', handleKeyPress);
 
             function handleKeyPress(e) {
                 let lane = -1;
-                if (laneKeys.indexOf(e.key) !== -1) lane = laneKeys.indexOf(e.key);
-                if (altKeys.indexOf(e.key) !== -1) lane = altKeys.indexOf(e.key);
+                for (let i = 0; i < laneKeyGroups.length; i++) {
+                    if (laneKeyGroups[i].includes(e.key)) {
+                        lane = i;
+                        break;
+                    }
+                }
 
                 if (lane !== -1) {
                     let hitAny = false;
@@ -729,7 +736,7 @@
                         if (!n.hit && !n.missed && n.lane === lane) {
                             let currentAudioTime = bgMusic.currentTime;
                             let noteY = hitY + (n.time - currentAudioTime) * 60 * scrollSpeed;
-                            if (Math.abs(noteY - hitY) < 45) {
+                            if (Math.abs(noteY - hitY) < 55) {
                                 n.hit = true;
                                 score += 100;
                                 health = Math.min(100, health + 4);
@@ -739,7 +746,7 @@
                         }
                     }
                     if (!hitAny) {
-                        health = Math.max(0, health - 3);
+                        health = Math.max(0, health - 2);
                         checkDeath();
                     }
                 }
@@ -826,7 +833,7 @@
                         }
                         if (noteY < hitY - 40 && !n.missed) {
                             n.missed = true;
-                            health = Math.max(0, health - 6);
+                            health = Math.max(0, health - 4);
                             checkDeath();
                         }
                     }
@@ -836,7 +843,7 @@
                 fnfCtx.font = '18px monospace';
                 fnfCtx.fillText(`Score: ${score}`, 360, 110);
 
-                if (health > 0 && !bgMusic.ended && currentAudioTime < 5.8) {
+                if (health > 0 && !bgMusic.ended && currentAudioTime < 6.8) {
                     requestAnimationFrame(fnfLoop);
                 } else {
                     bgMusic.pause();
