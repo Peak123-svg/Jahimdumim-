@@ -250,7 +250,7 @@
         const ctx = canvas.getContext('2d');
         const endScreen = document.getElementById('endScreen');
 
-        // Progress is no longer saved to localStorage; it starts fresh on load
+        // Always start fresh at 0 clicks on reload
         let clickCount = 0;
 
         clickArea.addEventListener('click', () => {
