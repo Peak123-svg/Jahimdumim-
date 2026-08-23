@@ -83,7 +83,7 @@
             height: 100vh;
             background: #000;
             z-index: 5;
-            cursor: pointer;
+            cursor: crosshair;
         }
 
         #survivalHUD {
@@ -324,7 +324,6 @@
                     notification.alpha = Math.max(0, notification.alpha - 0.02);
                 }
 
-                // Transition to 3D Survival Game when reaching goal
                 if (
                     player.x < goal.x + goal.w &&
                     player.x + player.width > goal.x &&
@@ -398,7 +397,7 @@
         }
 
         // ==========================================
-        // 3D SURVIVAL GAME (Baldi-Style Billboard Sprite)
+        // 3D SURVIVAL GAME (Simplistic & Challenging)
         // ==========================================
         function start3DSurvivalGame() {
             const container = document.getElementById('survivalContainer');
@@ -407,40 +406,45 @@
             container.style.display = 'block';
 
             const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x050505);
-            scene.fog = new THREE.FogExp2(0x050505, 0.08);
+            scene.background = new THREE.Color(0x000000);
 
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(0, 1.6, 5);
 
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            const renderer = new THREE.WebGLRenderer({ antialias: false });
             renderer.setSize(window.innerWidth, window.innerHeight);
             container.appendChild(renderer.domElement);
 
-            const ambientLight = new THREE.AmbientLight(0x222222);
-            scene.add(ambientLight);
-
-            const playerLight = new THREE.PointLight(0xffffff, 1.2, 12);
-            camera.add(playerLight);
-            scene.add(camera);
-
+            // Simple Flat Floor (matching platformer background aesthetic)
             const floorGeo = new THREE.PlaneGeometry(60, 60);
-            const floorMat = new THREE.MeshBasicMaterial({ color: 0x111111, wireframe: true });
+            const floorMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            const wallMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+            // Floor White Border Outline
+            const floorEdges = new THREE.EdgesGeometry(floorGeo);
+            const floorLine = new THREE.LineSegments(floorEdges, new THREE.LineBasicMaterial({ color: 0xffffff }));
+            floorLine.rotation.x = -Math.PI / 2;
+            scene.add(floorLine);
+
             const walls = [];
 
+            // Helper to build simplistic black walls with stark white outlines
             function createWall(x, z, w, d) {
                 const geom = new THREE.BoxGeometry(w, 3, d);
-                const mesh = new THREE.Mesh(geom, wallMat);
+                const mesh = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({ color: 0x000000 }));
                 mesh.position.set(x, 1.5, z);
                 scene.add(mesh);
+
+                const edges = new THREE.EdgesGeometry(geom);
+                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xffffff }));
+                mesh.add(line);
+
                 walls.push({ x, z, w, d });
             }
 
+            // Maze / Room Layout
             createWall(0, -30, 60, 1);
             createWall(0, 30, 60, 1);
             createWall(-30, 0, 1, 60);
@@ -450,7 +454,7 @@
             createWall(-15, 10, 10, 2);
             createWall(15, -10, 2, 10);
 
-            // 5 Artifacts (Black boxes with white outlines)
+            // 5 Artifacts (Black boxes with bright white outlines + counter)
             let collectedArtifacts = 0;
             const artifacts = [];
             const artifactGeo = new THREE.BoxGeometry(1, 1, 1);
@@ -474,7 +478,7 @@
                 artifacts.push(boxMesh);
             });
 
-            // Baldi-like Billboard Character Sprite
+            // Baldi-like Billboard Sprite
             const textureLoader = new THREE.TextureLoader();
             let monsterMesh = null;
             let isDead = false;
@@ -490,8 +494,11 @@
             let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
             let pitch = 0, yaw = 0;
 
+            // Proper Click-to-Lock Camera Controller
             container.addEventListener('click', () => {
-                if (!isDead) container.requestPointerLock();
+                if (!isDead) {
+                    container.requestPointerLock();
+                }
             });
 
             window.addEventListener('mousemove', (e) => {
@@ -524,7 +531,7 @@
                 requestAnimationFrame(animate3D);
                 if (isDead) return;
 
-                const speed = 0.08;
+                const speed = 0.09;
                 const dir = new THREE.Vector3();
                 camera.getWorldDirection(dir);
                 dir.y = 0;
@@ -564,15 +571,16 @@
                         hud.innerText = `Artifacts: ${collectedArtifacts} / 5`;
 
                         if (collectedArtifacts >= 5) {
-                            document.exitPointerLock();
+                            if (document.pointerLockElement) document.exitPointerLock();
                             container.style.display = 'none';
                             endScreen.style.display = 'flex';
                         }
                     }
                 });
 
+                // Faster, Aggressive Monster Chasing AI
                 if (monsterMesh) {
-                    const monsterSpeed = 0.038;
+                    const monsterSpeed = 0.055; // Increased speed for challenge
                     const directionToPlayer = new THREE.Vector3()
                         .subVectors(camera.position, monsterMesh.position);
                     directionToPlayer.y = 0;
@@ -583,7 +591,7 @@
                     // Jumpscare Catch Trigger
                     if (monsterMesh.position.distanceTo(camera.position) < 1.2) {
                         isDead = true;
-                        document.exitPointerLock();
+                        if (document.pointerLockElement) document.exitPointerLock();
                         jumpscare.style.display = 'flex';
 
                         setTimeout(() => {
