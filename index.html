@@ -147,30 +147,28 @@
                 timer: 200
             };
 
-            // Fair, well-spaced platform layout that is fully possible
+            // Harder layout: tight platforms, precise jumps, demanding longer spans requiring sprint
             let platforms = [
-                { x: 0, y: 380, w: 300, h: 70 },
-                { x: 380, y: 310, w: 90, h: 15 },
-                { x: 550, y: 250, w: 90, h: 15 },
-                { x: 720, y: 310, w: 90, h: 15 },
-                { x: 890, y: 230, w: 90, h: 15 },
-                { x: 1060, y: 170, w: 90, h: 15 },
-                { x: 1230, y: 240, w: 90, h: 15 },
-                { x: 1400, y: 310, w: 90, h: 15 },
-                { x: 1570, y: 220, w: 100, h: 15 },
-                { x: 1750, y: 150, w: 120, h: 20 } // Goal platform
+                { x: 0, y: 380, w: 200, h: 70 },
+                { x: 300, y: 320, w: 50, h: 12 },
+                { x: 420, y: 260, w: 45, h: 12 },
+                { x: 540, y: 190, w: 40, h: 12 },
+                { x: 650, y: 280, w: 45, h: 12 },
+                { x: 770, y: 340, w: 50, h: 12 },
+                { x: 890, y: 240, w: 40, h: 12 },
+                { x: 1010, y: 170, w: 45, h: 12 },
+                { x: 1130, y: 250, w: 40, h: 12 },
+                { x: 1250, y: 320, w: 45, h: 12 },
+                { x: 1370, y: 210, w: 40, h: 12 },
+                { x: 1490, y: 140, w: 45, h: 12 },
+                { x: 1610, y: 230, w: 40, h: 12 },
+                { x: 1730, y: 300, w: 50, h: 12 },
+                { x: 1850, y: 190, w: 45, h: 12 },
+                { x: 1980, y: 120, w: 90, h: 15 } // Goal platform
             ];
 
-            // Stationary red hazard blocks acting as obstacles
-            let enemies = [
-                { x: 580, y: 230, w: 18, h: 18 },
-                { x: 920, y: 210, w: 18, h: 18 },
-                { x: 1260, y: 220, w: 18, h: 18 },
-                { x: 1600, y: 200, w: 18, h: 18 }
-            ];
-
-            let goal = { x: 1810, y: 80, w: 40, h: 70 };
-            let worldWidth = 1950;
+            let goal = { x: 2010, y: 50, w: 40, h: 70 };
+            let worldWidth = 2150;
 
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.Left = true;
@@ -234,18 +232,6 @@
                     }
                 }
 
-                // Check collision with stationary red hazards
-                for (let en of enemies) {
-                    if (
-                        player.x < en.x + en.w &&
-                        player.x + player.width > en.x &&
-                        player.y < en.y + en.h &&
-                        player.y + player.height > en.y
-                    ) {
-                        resetPlayer();
-                    }
-                }
-
                 if (player.y > canvas.height + 100) {
                     resetPlayer();
                 }
@@ -301,14 +287,9 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
 
-                // Draw stationary red hazard blocks
-                ctx.fillStyle = '#ff0000';
-                for (let en of enemies) {
-                    ctx.fillRect(en.x, en.y, en.w, en.h);
-                }
-
+                // Distinct blue motion trail during sprint
                 for (let t of trail) {
-                    ctx.fillStyle = `rgba(255, 255, 255, ${t.alpha})`;
+                    ctx.fillStyle = `rgba(59, 130, 246, ${t.alpha})`;
                     ctx.fillRect(t.x, t.y, player.width, player.height);
                 }
 
