@@ -18,47 +18,56 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             text-align: center;
             overflow: hidden;
+            user-select: none;
         }
 
         .container {
             padding: 20px;
             max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .image-wrapper {
+            position: relative;
+            cursor: pointer;
+            display: inline-block;
+            margin-bottom: 24px;
         }
 
         img {
             max-width: 250px;
             height: auto;
-            margin-bottom: 24px;
-            cursor: pointer;
-            transition: transform 0.1s ease;
+            display: block;
+            pointer-events: none; /* Let clicks pass to the wrapper */
         }
 
-        /* Shake animation keyframes */
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
             20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
             40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
             60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
             80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
             100% { transform: translate(1px, -2px) rotate(-1deg); }
         }
 
         .shake {
-            animation: shake 0.3s;
+            animation: shake 0.2s ease;
         }
 
         h1 {
             font-size: 1.75rem;
             font-weight: 600;
             letter-spacing: -0.025em;
-            margin: 0;
+            margin: 0 0 10px 0;
             color: #e2e8f0;
             text-transform: lowercase;
+        }
+
+        .counter {
+            font-size: 0.85rem;
+            color: #64748b;
         }
 
         #gameCanvas {
@@ -88,29 +97,34 @@
 <body>
 
     <div class="container" id="mainContainer">
-        <img id="updateImg" src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/1274_Sem_Titulo_20250617215305.webp" alt="update image">
+        <div class="image-wrapper" id="clickArea">
+            <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/1274_Sem_Titulo_20250617215305.webp" alt="update image">
+        </div>
         <h1>he will update you</h1>
+        <div class="counter" id="clickCounter">clicks: 0/13</div>
     </div>
 
     <canvas id="gameCanvas" width="800" height="400"></canvas>
     <div id="endScreen">more after this soon</div>
 
     <script>
-        const img = document.getElementById('updateImg');
+        const clickArea = document.getElementById('clickArea');
         const mainContainer = document.getElementById('mainContainer');
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const endScreen = document.getElementById('endScreen');
+        const clickCounter = document.getElementById('clickCounter');
 
         let clickCount = 0;
 
-        img.addEventListener('click', () => {
+        clickArea.addEventListener('click', () => {
             clickCount++;
+            clickCounter.textContent = `clicks: ${clickCount}/13`;
             
             // Trigger shake effect
-            img.classList.remove('shake');
-            void img.offsetWidth; // force reflow
-            img.classList.add('shake');
+            clickArea.classList.remove('shake');
+            void clickArea.offsetWidth; // force reflow
+            clickArea.classList.add('shake');
 
             if (clickCount >= 13) {
                 startGame();
@@ -121,12 +135,10 @@
             mainContainer.style.display = 'none';
             canvas.style.display = 'block';
 
-            // Game variables
             let player = { x: 50, y: 200, width: 30, height: 30, vx: 0, vy: 0, speed: 4, jumpPower: -10, grounded: false };
             let gravity = 0.5;
-            let keys = { ArrowLeft: false, ArrowRight: false, Space: false };
+            let keys = { Left: false, Right: false };
 
-            // Platforms (x, y, w, h)
             let platforms = [
                 { x: 0, y: 350, w: 800, h: 50 },
                 { x: 200, y: 260, w: 120, h: 20 },
@@ -134,17 +146,14 @@
                 { x: 600, y: 100, w: 150, h: 20 }
             ];
 
-            // Goal zone to beat the game
             let goal = { x: 680, y: 40, w: 40, h: 60 };
 
             window.addEventListener('keydown', (e) => {
                 if (e.code === 'ArrowLeft') keys.Left = true;
                 if (e.code === 'ArrowRight') keys.Right = true;
-                if (e.code === 'Space' || e.code === 'ArrowUp') {
-                    if (player.grounded) {
-                        player.vy = player.jumpPower;
-                        player.grounded = false;
-                    }
+                if ((e.code === 'Space' || e.code === 'ArrowUp') && player.grounded) {
+                    player.vy = player.jumpPower;
+                    player.grounded = false;
                 }
             });
 
@@ -154,7 +163,6 @@
             });
 
             function update() {
-                // Movement
                 if (keys.Left) player.vx = -player.speed;
                 else if (keys.Right) player.vx = player.speed;
                 else player.vx = 0;
@@ -163,7 +171,6 @@
                 player.vy += gravity;
                 player.y += player.vy;
 
-                // Collision with platforms
                 player.grounded = false;
                 for (let p of platforms) {
                     if (
@@ -178,11 +185,9 @@
                     }
                 }
 
-                // Canvas boundaries
                 if (player.x < 0) player.x = 0;
                 if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 
-                // Win condition (reaching the goal)
                 if (
                     player.x < goal.x + goal.w &&
                     player.x + player.width > goal.x &&
@@ -202,17 +207,14 @@
                 ctx.fillStyle = '#0f172a';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Draw platforms
                 ctx.fillStyle = '#334155';
                 for (let p of platforms) {
                     ctx.fillRect(p.x, p.y, p.w, p.h);
                 }
 
-                // Draw goal flag/zone
                 ctx.fillStyle = '#38bdf8';
                 ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
 
-                // Draw black cube player
                 ctx.fillStyle = '#000000';
                 ctx.fillRect(player.x, player.y, player.width, player.height);
                 ctx.strokeStyle = '#ffffff';
