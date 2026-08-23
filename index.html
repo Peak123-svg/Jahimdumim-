@@ -60,14 +60,9 @@
             font-size: 1.75rem;
             font-weight: 600;
             letter-spacing: -0.025em;
-            margin: 0 0 10px 0;
+            margin: 0;
             color: #e2e8f0;
             text-transform: lowercase;
-        }
-
-        .counter {
-            font-size: 0.85rem;
-            color: #64748b;
         }
 
         #gameCanvas {
@@ -92,6 +87,7 @@
             font-weight: 500;
             letter-spacing: -0.025em;
             text-transform: lowercase;
+            z-index: 10;
         }
     </style>
 </head>
@@ -102,7 +98,6 @@
             <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/1274_Sem_Titulo_20250617215305.webp" alt="update image">
         </div>
         <h1>he will update you</h1>
-        <div class="counter" id="clickCounter">clicks: 0/13</div>
     </div>
 
     <canvas id="gameCanvas" width="800" height="450"></canvas>
@@ -114,13 +109,11 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const endScreen = document.getElementById('endScreen');
-        const clickCounter = document.getElementById('clickCounter');
 
         let clickCount = 0;
 
         clickArea.addEventListener('click', () => {
             clickCount++;
-            clickCounter.textContent = `clicks: ${clickCount}/13`;
             
             clickArea.classList.remove('shake');
             void clickArea.offsetWidth;
@@ -135,63 +128,62 @@
             mainContainer.style.display = 'none';
             canvas.style.display = 'block';
 
-            // Game variables
             let player = { 
                 x: 50, y: 300, width: 28, height: 28, 
-                vx: 0, vy: 0, speed: 4.5, sprintSpeed: 8, 
-                jumpPower: -11.5, grounded: false 
+                vx: 0, vy: 0, speed: 4, sprintSpeed: 7.5, 
+                jumpPower: -10.5, grounded: false 
             };
             
             let gravity = 0.55;
             let keys = { Left: false, Right: false, Shift: false };
             
-            // Sprint & Trail mechanics
             let stamina = 100;
             let maxStamina = 100;
-            let staminaAlpha = 0; // For fading in/out the bar
+            let staminaAlpha = 0; 
             let trail = [];
 
-            // Notification message state
             let notification = {
                 text: "press [SHIFT] to sprint",
                 alpha: 1,
-                timer: 240 // frames to stay fully visible before fading
+                timer: 200
             };
 
-            // Hard scrolling platform layout spanning across a wide level
+            // Hard scrolling platformer layout with tight jumps over gaps
             let platforms = [
-                { x: 0, y: 380, w: 450, h: 70 },
-                { x: 500, y: 320, w: 140, h: 20 },
-                { x: 720, y: 250, w: 100, h: 20 },
-                { x: 900, y: 300, w: 120, h: 20 },
-                { x: 1100, y: 220, w: 90, h: 20 },
-                { x: 1280, y: 160, w: 110, h: 20 },
-                { x: 1480, y: 230, w: 90, h: 20 },
-                { x: 1650, y: 300, w: 130, h: 20 },
-                { x: 1850, y: 220, w: 100, h: 20 },
-                { x: 2040, y: 150, w: 160, h: 30 } // Final goal platform
+                { x: 0, y: 380, w: 400, h: 70 },
+                { x: 480, y: 330, w: 90, h: 20 },
+                { x: 650, y: 270, w: 80, h: 20 },
+                { x: 820, y: 220, w: 70, h: 20 },
+                { x: 980, y: 300, w: 100, h: 20 },
+                { x: 1160, y: 240, w: 80, h: 20 },
+                { x: 1320, y: 180, w: 70, h: 20 },
+                { x: 1480, y: 260, w: 90, h: 20 },
+                { x: 1650, y: 200, w: 80, h: 20 },
+                { x: 1820, y: 140, w: 120, h: 25 },
+                { x: 2020, y: 220, w: 80, h: 20 },
+                { x: 2180, y: 150, w: 150, h: 30 } // End platform
             ];
 
-            let goal = { x: 2100, y: 80, w: 40, h: 70 };
+            let goal = { x: 2250, y: 80, w: 40, h: 70 };
+            let worldWidth = 2500;
 
             window.addEventListener('keydown', (e) => {
-                if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.Left = true;
-                if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.Right = true;
-                if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.Shift = true;
-                if ((e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') && player.grounded) {
+                if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.Left = true;
+                if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.Right = true;
+                if (e.key === 'Shift') keys.Shift = true;
+                if ((e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') && player.grounded) {
                     player.vy = player.jumpPower;
                     player.grounded = false;
                 }
             });
 
             window.addEventListener('keyup', (e) => {
-                if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.Left = false;
-                if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.Right = false;
-                if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.Shift = false;
+                if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.Left = false;
+                if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.Right = false;
+                if (e.key === 'Shift') keys.Shift = false;
             });
 
             function update() {
-                // Determine current speed based on sprint input and stamina
                 let isSprinting = keys.Shift && stamina > 0 && (keys.Left || keys.Right);
                 let currentSpeed = isSprinting ? player.sprintSpeed : player.speed;
 
@@ -199,16 +191,15 @@
                 else if (keys.Right) player.vx = currentSpeed;
                 else player.vx = 0;
 
-                // Handle stamina drain and recovery
                 if (isSprinting) {
-                    stamina = Math.max(0, stamina - 1.2);
-                    staminaAlpha = Math.min(1, staminaAlpha + 0.1); // Fade in
+                    stamina = Math.max(0, stamina - 1.5);
+                    staminaAlpha = 1; 
                 } else {
-                    stamina = Math.min(maxStamina, stamina + 0.6); // Recharges slowly
+                    stamina = Math.min(maxStamina, stamina + 0.5); 
                     if (stamina >= maxStamina && !keys.Shift) {
-                        staminaAlpha = Math.max(0, staminaAlpha - 0.05); // Fade out when full/inactive
+                        staminaAlpha = Math.max(0, staminaAlpha - 0.05); 
                     } else if (keys.Shift && stamina <= 0) {
-                        staminaAlpha = Math.max(0, staminaAlpha - 0.05); // Fade out if depleted
+                        staminaAlpha = Math.max(0, staminaAlpha - 0.05); 
                     }
                 }
 
@@ -216,7 +207,6 @@
                 player.vy += gravity;
                 player.y += player.vy;
 
-                // Collision with platforms
                 player.grounded = false;
                 for (let p of platforms) {
                     if (
@@ -231,7 +221,7 @@
                     }
                 }
 
-                // Fall into the void boundary reset
+                // Fall into void reset
                 if (player.y > canvas.height + 100) {
                     player.x = 50;
                     player.y = 300;
@@ -240,26 +230,22 @@
                     stamina = maxStamina;
                 }
 
-                // Record trail positions while sprinting
                 if (isSprinting) {
                     trail.push({ x: player.x, y: player.y, alpha: 0.6 });
                 }
-                // Update existing trail pieces (fade out)
                 for (let i = trail.length - 1; i >= 0; i--) {
-                    trail[i].alpha -= 0.08;
+                    trail[i].alpha -= 0.1;
                     if (trail[i].alpha <= 0) {
                         trail.splice(i, 1);
                     }
                 }
 
-                // Notification fading timer
                 if (notification.timer > 0) {
                     notification.timer--;
                 } else {
                     notification.alpha = Math.max(0, notification.alpha - 0.02);
                 }
 
-                // Win condition
                 if (
                     player.x < goal.x + goal.w &&
                     player.x + player.width > goal.x &&
@@ -279,15 +265,13 @@
                 ctx.fillStyle = '#020617';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Camera follow logic (smooth horizontal centering)
                 let cameraX = player.x - canvas.width / 2 + player.width / 2;
                 if (cameraX < 0) cameraX = 0;
-                if (cameraX > 2200 - canvas.width) cameraX = 2200 - canvas.width;
+                if (cameraX > worldWidth - canvas.width) cameraX = worldWidth - canvas.width;
 
                 ctx.save();
                 ctx.translate(-cameraX, 0);
 
-                // Draw platforms
                 ctx.fillStyle = '#1e293b';
                 for (let p of platforms) {
                     ctx.fillRect(p.x, p.y, p.w, p.h);
@@ -296,17 +280,14 @@
                     ctx.strokeRect(p.x, p.y, p.w, p.h);
                 }
 
-                // Draw goal marker
                 ctx.fillStyle = '#38bdf8';
                 ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
 
-                // Draw sprint motion trail
                 for (let t of trail) {
                     ctx.fillStyle = `rgba(56, 189, 248, ${t.alpha})`;
                     ctx.fillRect(t.x, t.y, player.width, player.height);
                 }
 
-                // Draw player (black cube)
                 ctx.fillStyle = '#000000';
                 ctx.fillRect(player.x, player.y, player.width, player.height);
                 ctx.strokeStyle = '#ffffff';
@@ -315,7 +296,6 @@
 
                 ctx.restore();
 
-                // Draw fading notification banner (fixed on screen)
                 if (notification.alpha > 0) {
                     ctx.save();
                     ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -325,7 +305,6 @@
                     ctx.restore();
                 }
 
-                // Draw fading stamina bar (fixed on screen top right)
                 if (staminaAlpha > 0) {
                     ctx.save();
                     ctx.globalAlpha = staminaAlpha;
