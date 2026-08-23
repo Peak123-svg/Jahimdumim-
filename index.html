@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>update 4</title>
+    <title>update 4 - simplistic</title>
     <!-- Include Three.js for the 3D survival game section -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -15,9 +15,9 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background-color: #0f172a;
-            color: #f8fafc;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            font-family: Arial, sans-serif;
             text-align: center;
             overflow: hidden;
             user-select: none;
@@ -59,18 +59,17 @@
         }
 
         h1 {
-            font-size: 1.75rem;
-            font-weight: 600;
-            letter-spacing: -0.025em;
+            font-size: 1.5rem;
+            font-weight: normal;
             margin: 0;
-            color: #e2e8f0;
+            color: #000000;
             text-transform: lowercase;
         }
 
         #gameCanvas {
             display: none;
-            background: #000000;
-            border: 1px solid #ffffff;
+            background: #ffffff;
+            border: 1px solid #000000;
         }
 
         /* 3D Survival Game Container & UI */
@@ -92,12 +91,10 @@
             left: 50%;
             transform: translateX(-50%);
             color: #ffffff;
-            font-family: monospace;
+            font-family: Arial, sans-serif;
             font-size: 1.5rem;
-            letter-spacing: 2px;
             pointer-events: none;
             z-index: 6;
-            text-shadow: 0 0 5px #000;
         }
 
         #crosshair {
@@ -121,15 +118,16 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: #111;
+            background: #ffffff;
             z-index: 15;
             overflow: hidden;
         }
 
         #fnfCanvas {
             display: block;
-            background: #181818;
+            background: #ffffff;
             margin: 0 auto;
+            border: 1px solid #000;
         }
 
         /* Custom Jumpscare Screen Overlay */
@@ -155,11 +153,9 @@
 
         #jumpscareScreen h2 {
             color: #ff0000;
-            font-family: monospace;
+            font-family: Arial, sans-serif;
             font-size: 3rem;
-            letter-spacing: 4px;
             margin: 0;
-            text-shadow: 0 0 10px #ff0000;
         }
 
         /* Blank Red Crash Screen */
@@ -181,13 +177,12 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: #000000;
-            color: #ffffff;
+            background: #ffffff;
+            color: #000000;
             justify-content: center;
             align-items: center;
             font-size: 2rem;
-            font-weight: 500;
-            letter-spacing: -0.025em;
+            font-weight: normal;
             text-transform: lowercase;
             z-index: 10;
         }
@@ -197,13 +192,12 @@
             position: fixed;
             bottom: 15px;
             left: 20px;
-            color: rgba(255, 255, 255, 0.4);
-            font-family: monospace;
+            color: rgba(0, 0, 0, 0.4);
+            font-family: Arial, sans-serif;
             font-size: 0.9rem;
             pointer-events: none;
             z-index: 100;
             text-transform: lowercase;
-            letter-spacing: 1px;
         }
     </style>
 </head>
@@ -211,7 +205,7 @@
 
     <div class="container" id="mainContainer">
         <div class="image-wrapper" id="clickArea">
-            <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/1274_Sem_Titulo_20250617215305.webp?v=4" alt="update image">
+            <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/1274_Sem_Titulo_20250617215305.webp?v=4.1" alt="update image">
         </div>
         <h1>he will update you</h1>
     </div>
@@ -231,7 +225,7 @@
 
     <!-- Custom Jumpscare Overlay -->
     <div id="jumpscareScreen">
-        <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=4" alt="jumpscare">
+        <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=4.1" alt="jumpscare">
         <h2>YOU DIED</h2>
     </div>
 
@@ -399,7 +393,7 @@
             }
 
             function draw() {
-                ctx.fillStyle = '#000000';
+                ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 let cameraX = player.x - canvas.width / 2 + player.width / 2;
@@ -409,23 +403,23 @@
                 ctx.save();
                 ctx.translate(-cameraX, 0);
 
-                ctx.strokeStyle = '#ffffff';
+                ctx.strokeStyle = '#000000';
                 ctx.lineWidth = 2;
                 for (let p of platforms) {
                     ctx.strokeRect(p.x, p.y, p.w, p.h);
                 }
 
-                ctx.fillStyle = '#ffffff';
+                ctx.fillStyle = '#000000';
                 ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
 
                 for (let t of trail) {
-                    ctx.fillStyle = `rgba(59, 130, 246, ${t.alpha})`;
+                    ctx.fillStyle = `rgba(0, 0, 0, ${t.alpha})`;
                     ctx.fillRect(t.x, t.y, player.width, player.height);
                 }
 
-                ctx.fillStyle = '#000000';
+                ctx.fillStyle = '#ffffff';
                 ctx.fillRect(player.x, player.y, player.width, player.height);
-                ctx.strokeStyle = '#ffffff';
+                ctx.strokeStyle = '#000000';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(player.x, player.y, player.width, player.height);
 
@@ -433,8 +427,8 @@
 
                 if (notification.alpha > 0) {
                     ctx.save();
-                    ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-                    ctx.fillStyle = `rgba(255, 255, 255, ${notification.alpha})`;
+                    ctx.font = '14px Arial, sans-serif';
+                    ctx.fillStyle = `rgba(0, 0, 0, ${notification.alpha})`;
                     ctx.textAlign = 'center';
                     ctx.fillText(notification.text, canvas.width / 2, 50);
                     ctx.restore();
@@ -443,10 +437,10 @@
                 if (staminaAlpha > 0) {
                     ctx.save();
                     ctx.globalAlpha = staminaAlpha;
-                    ctx.strokeStyle = '#ffffff';
+                    ctx.strokeStyle = '#000000';
                     ctx.lineWidth = 1;
                     ctx.strokeRect(canvas.width - 130, 20, 100, 8);
-                    ctx.fillStyle = '#ffffff';
+                    ctx.fillStyle = '#000000';
                     ctx.fillRect(canvas.width - 130, 20, (stamina / maxStamina) * 100, 8);
                     ctx.restore();
                 }
@@ -545,7 +539,7 @@
             let gameRunning = true;
             let animationFrameId = null;
             
-            textureLoader.load('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=4', (texture) => {
+            textureLoader.load('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=4.1', (texture) => {
                 const monsterMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
                 monsterMesh = new THREE.Sprite(monsterMat);
                 monsterMesh.scale.set(2.2, 3.2, 1);
@@ -687,10 +681,10 @@
             fnfContainer.style.display = 'block';
 
             const playerImg = new Image();
-            playerImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/6a483e08c9e4c_download.jpeg?v=4';
+            playerImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/6a483e08c9e4c_download.jpeg?v=4.1';
             
             const monsterImg = new Image();
-            monsterImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=4';
+            monsterImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png?v=4.1';
 
             const bgMusic = new Audio('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/CRAZDIN!.mp3');
             bgMusic.loop = false;
@@ -792,7 +786,7 @@
             const arrowColors = ['#ff0055', '#00ffff', '#12fa05', '#ffaa00'];
 
             function fnfLoop() {
-                fnfCtx.fillStyle = '#111111';
+                fnfCtx.fillStyle = '#ffffff';
                 fnfCtx.fillRect(0, 0, fnfCanvas.width, fnfCanvas.height);
 
                 let currentAudioTime = bgMusic.currentTime;
@@ -804,7 +798,7 @@
                     fnfCtx.drawImage(playerImg, 560, 180, 140, 180);
                 }
 
-                fnfCtx.fillStyle = '#555';
+                fnfCtx.fillStyle = '#ccc';
                 fnfCtx.fillRect(198, 48, 404, 24);
                 fnfCtx.fillStyle = '#ff0000';
                 fnfCtx.fillRect(200, 50, 400, 20);
@@ -818,10 +812,10 @@
                 let laneWidth = 60;
                 for (let i = 0; i < 4; i++) {
                     let lx = startX + i * laneWidth;
-                    fnfCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+                    fnfCtx.strokeStyle = 'rgba(0,0,0,0.15)';
                     fnfCtx.strokeRect(lx, 0, laneWidth, fnfCanvas.height);
 
-                    drawArrow(fnfCtx, lx + 5, hitY, i, 'rgba(255,255,255,0.4)');
+                    drawArrow(fnfCtx, lx + 5, hitY, i, 'rgba(0,0,0,0.4)');
                 }
 
                 for (let n of notes) {
@@ -839,8 +833,8 @@
                     }
                 }
 
-                fnfCtx.fillStyle = '#ffffff';
-                fnfCtx.font = '18px monospace';
+                fnfCtx.fillStyle = '#000000';
+                fnfCtx.font = '18px Arial, sans-serif';
                 fnfCtx.fillText(`Score: ${score}`, 360, 110);
 
                 if (health > 0 && !bgMusic.ended && currentAudioTime < 6.8) {
