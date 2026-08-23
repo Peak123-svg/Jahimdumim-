@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>update</title>
+    <!-- Include Three.js for the 3D survival game section -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -71,6 +73,76 @@
             border: 1px solid #ffffff;
         }
 
+        /* 3D Survival Game Container & UI */
+        #survivalContainer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 5;
+            cursor: pointer;
+        }
+
+        #survivalHUD {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            pointer-events: none;
+            z-index: 6;
+            text-shadow: 0 0 5px #000;
+        }
+
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 6;
+        }
+
+        /* Custom Jumpscare Screen Overlay */
+        #jumpscareScreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000000;
+            z-index: 20;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #jumpscareScreen img {
+            max-width: 400px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        #jumpscareScreen h2 {
+            color: #ff0000;
+            font-family: monospace;
+            font-size: 3rem;
+            letter-spacing: 4px;
+            margin: 0;
+            text-shadow: 0 0 10px #ff0000;
+        }
+
         #endScreen {
             display: none;
             position: fixed;
@@ -100,7 +172,20 @@
     </div>
 
     <canvas id="gameCanvas" width="800" height="450"></canvas>
-    <div id="endScreen">more after this soon</div>
+    
+    <!-- 3D Survival Mini-Game UI -->
+    <div id="survivalContainer">
+        <div id="survivalHUD">Artifacts: 0 / 5</div>
+        <div id="crosshair"></div>
+    </div>
+
+    <!-- Custom Jumpscare Overlay -->
+    <div id="jumpscareScreen">
+        <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png" alt="jumpscare">
+        <h2>YOU DIED</h2>
+    </div>
+
+    <div id="endScreen">soon after this</div>
 
     <script>
         const clickArea = document.getElementById('clickArea');
@@ -147,12 +232,11 @@
                 timer: 200
             };
 
-            // EASY & FORGIVING: Wider platforms, comfortable spacing, zero enemies
             let platforms = [
                 { x: 0, y: 380, w: 300, h: 70 },
                 { x: 380, y: 330, w: 120, h: 15 },
                 { x: 580, y: 280, w: 120, h: 15 },
-                { x: 780, y: 230, w: 150, h: 20 } // Goal platform
+                { x: 780, y: 230, w: 150, h: 20 }
             ];
 
             let goal = { x: 840, y: 160, w: 40, h: 70 };
@@ -247,7 +331,7 @@
                     player.y + player.height > goal.y
                 ) {
                     canvas.style.display = 'none';
-                    endScreen.style.display = 'flex';
+                    start3DSurvivalGame();
                     return;
                 }
 
@@ -275,7 +359,6 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
 
-                // Blue trail rendering
                 for (let t of trail) {
                     ctx.fillStyle = `rgba(59, 130, 246, ${t.alpha})`;
                     ctx.fillRect(t.x, t.y, player.width, player.height);
@@ -311,6 +394,219 @@
             }
 
             update();
+        }
+
+        // ==========================================
+        // 3D SURVIVAL GAME (Baldi-Style Billboard Sprite)
+        // ==========================================
+        function start3DSurvivalGame() {
+            const container = document.getElementById('survivalContainer');
+            const hud = document.getElementById('survivalHUD');
+            const jumpscare = document.getElementById('jumpscareScreen');
+            container.style.display = 'block';
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x050505);
+            scene.fog = new THREE.FogExp2(0x050505, 0.08);
+
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1.6, 5);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0x222222);
+            scene.add(ambientLight);
+
+            const playerLight = new THREE.PointLight(0xffffff, 1.2, 12);
+            camera.add(playerLight);
+            scene.add(camera);
+
+            const floorGeo = new THREE.PlaneGeometry(60, 60);
+            const floorMat = new THREE.MeshBasicMaterial({ color: 0x111111, wireframe: true });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            scene.add(floor);
+
+            const wallMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+            const walls = [];
+
+            function createWall(x, z, w, d) {
+                const geom = new THREE.BoxGeometry(w, 3, d);
+                const mesh = new THREE.Mesh(geom, wallMat);
+                mesh.position.set(x, 1.5, z);
+                scene.add(mesh);
+                walls.push({ x, z, w, d });
+            }
+
+            createWall(0, -30, 60, 1);
+            createWall(0, 30, 60, 1);
+            createWall(-30, 0, 1, 60);
+            createWall(30, 0, 1, 60);
+            createWall(-10, -10, 15, 2);
+            createWall(10, 10, 2, 15);
+            createWall(-15, 10, 10, 2);
+            createWall(15, -10, 2, 10);
+
+            // 5 Artifacts (Black boxes with white outlines)
+            let collectedArtifacts = 0;
+            const artifacts = [];
+            const artifactGeo = new THREE.BoxGeometry(1, 1, 1);
+            
+            const positions = [
+                {x: -15, z: -15},
+                {x: 18, z: -18},
+                {x: -20, z: 20},
+                {x: 20, z: 15},
+                {x: 0, z: -22}
+            ];
+
+            positions.forEach(pos => {
+                const boxMesh = new THREE.Mesh(artifactGeo, new THREE.MeshBasicMaterial({ color: 0x000000 }));
+                const edges = new THREE.EdgesGeometry(artifactGeo);
+                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xffffff }));
+                boxMesh.add(line);
+                
+                boxMesh.position.set(pos.x, 0.5, pos.z);
+                scene.add(boxMesh);
+                artifacts.push(boxMesh);
+            });
+
+            // Baldi-like Billboard Character Sprite
+            const textureLoader = new THREE.TextureLoader();
+            let monsterMesh = null;
+            let isDead = false;
+            
+            textureLoader.load('https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png', (texture) => {
+                const monsterMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+                monsterMesh = new THREE.Sprite(monsterMat);
+                monsterMesh.scale.set(2.2, 3.2, 1);
+                monsterMesh.position.set(0, 1.6, -20);
+                scene.add(monsterMesh);
+            });
+
+            let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+            let pitch = 0, yaw = 0;
+
+            container.addEventListener('click', () => {
+                if (!isDead) container.requestPointerLock();
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDead && document.pointerLockElement === container) {
+                    yaw -= e.movementX * 0.003;
+                    pitch -= e.movementY * 0.003;
+                    pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+                    
+                    camera.rotation.set(0, 0, 0);
+                    camera.rotateY(yaw);
+                    camera.rotateX(pitch);
+                }
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'w' || e.key === 'W') moveForward = true;
+                if (e.key === 's' || e.key === 'S') moveBackward = true;
+                if (e.key === 'a' || e.key === 'A') moveLeft = true;
+                if (e.key === 'd' || e.key === 'D') moveRight = true;
+            });
+
+            window.addEventListener('keyup', (e) => {
+                if (e.key === 'w' || e.key === 'W') moveForward = false;
+                if (e.key === 's' || e.key === 'S') moveBackward = false;
+                if (e.key === 'a' || e.key === 'A') moveLeft = false;
+                if (e.key === 'd' || e.key === 'D') moveRight = false;
+            });
+
+            function animate3D() {
+                requestAnimationFrame(animate3D);
+                if (isDead) return;
+
+                const speed = 0.08;
+                const dir = new THREE.Vector3();
+                camera.getWorldDirection(dir);
+                dir.y = 0;
+                dir.normalize();
+
+                const sideDir = new THREE.Vector3(-dir.z, 0, dir.x);
+
+                let nextX = camera.position.x;
+                let nextZ = camera.position.z;
+
+                if (moveForward) { nextX += dir.x * speed; nextZ += dir.z * speed; }
+                if (moveBackward) { nextX -= dir.x * speed; nextZ -= dir.z * speed; }
+                if (moveLeft) { nextX += sideDir.x * speed; nextZ += sideDir.z * speed; }
+                if (moveRight) { nextX -= sideDir.x * speed; nextZ -= sideDir.z * speed; }
+
+                let collided = false;
+                for (let w of walls) {
+                    if (
+                        nextX > w.x - w.w/2 - 0.5 && nextX < w.x + w.w/2 + 0.5 &&
+                        nextZ > w.z - w.d/2 - 0.5 && nextZ < w.z + w.d/2 + 0.5
+                    ) {
+                        collided = true;
+                        break;
+                    }
+                }
+
+                if (!collided) {
+                    camera.position.x = nextX;
+                    camera.position.z = nextZ;
+                }
+
+                artifacts.forEach((art, index) => {
+                    if (art && camera.position.distanceTo(art.position) < 1.5) {
+                        scene.remove(art);
+                        artifacts[index] = null;
+                        collectedArtifacts++;
+                        hud.innerText = `Artifacts: ${collectedArtifacts} / 5`;
+
+                        if (collectedArtifacts >= 5) {
+                            document.exitPointerLock();
+                            container.style.display = 'none';
+                            endScreen.style.display = 'flex';
+                        }
+                    }
+                });
+
+                if (monsterMesh) {
+                    const monsterSpeed = 0.038;
+                    const directionToPlayer = new THREE.Vector3()
+                        .subVectors(camera.position, monsterMesh.position);
+                    directionToPlayer.y = 0;
+                    directionToPlayer.normalize();
+
+                    monsterMesh.position.addScaledVector(directionToPlayer, monsterSpeed);
+
+                    // Jumpscare Catch Trigger
+                    if (monsterMesh.position.distanceTo(camera.position) < 1.2) {
+                        isDead = true;
+                        document.exitPointerLock();
+                        jumpscare.style.display = 'flex';
+
+                        setTimeout(() => {
+                            jumpscare.style.display = 'none';
+                            camera.position.set(0, 1.6, 5);
+                            monsterMesh.position.set(0, 1.6, -20);
+                            yaw = 0;
+                            pitch = 0;
+                            camera.rotation.set(0, 0, 0);
+                            isDead = false;
+                        }, 2000);
+                    }
+                }
+
+                renderer.render(scene, camera);
+            }
+
+            animate3D();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
         }
     </script>
 </body>
