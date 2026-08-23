@@ -113,6 +113,25 @@
             z-index: 6;
         }
 
+        /* FNF Rhythm Game UI */
+        #fnfContainer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #050505;
+            z-index: 15;
+            overflow: hidden;
+        }
+
+        #fnfCanvas {
+            display: block;
+            background: #000;
+            margin: 0 auto;
+        }
+
         /* Custom Jumpscare Screen Overlay */
         #jumpscareScreen {
             display: none;
@@ -141,6 +160,29 @@
             letter-spacing: 4px;
             margin: 0;
             text-shadow: 0 0 10px #ff0000;
+        }
+
+        /* Crash Screen */
+        #crashScreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #990000;
+            color: #ffffff;
+            z-index: 50;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: monospace;
+        }
+
+        #crashScreen h1 {
+            font-size: 3rem;
+            color: #fff;
+            margin-bottom: 10px;
         }
 
         #endScreen {
@@ -179,10 +221,21 @@
         <div id="crosshair"></div>
     </div>
 
+    <!-- FNF Rhythm Game Container -->
+    <div id="fnfContainer">
+        <canvas id="fnfCanvas" width="800" height="600"></canvas>
+    </div>
+
     <!-- Custom Jumpscare Overlay -->
     <div id="jumpscareScreen">
         <img src="https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png" alt="jumpscare">
         <h2>YOU DIED</h2>
+    </div>
+
+    <!-- Crash Screen Overlay -->
+    <div id="crashScreen">
+        <h1>FATAL_EXCEPTION</h1>
+        <p>GAME CRASHED DUE TO RHYTHM FAILURE.</p>
     </div>
 
     <div id="endScreen">soon after this</div>
@@ -458,7 +511,6 @@
             createWall(25, 25, 15, 2);
             createWall(-25, -25, 2, 15);
 
-            // Exactly 7 Artifacts
             let collectedArtifacts = 0;
             const artifacts = [];
             const artifactGeo = new THREE.BoxGeometry(1, 1, 1);
@@ -577,7 +629,7 @@
                         if (collectedArtifacts >= 7) {
                             if (document.pointerLockElement) document.exitPointerLock();
                             container.style.display = 'none';
-                            endScreen.style.display = 'flex';
+                            startFNFBattle();
                         }
                     }
                 });
@@ -612,12 +664,176 @@
             }
 
             animate3D();
+        }
 
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
+        // ==========================================
+        // FNF RHYTHM BATTLE SECTION
+        // ==========================================
+        function startFNFBattle() {
+            const fnfContainer = document.getElementById('fnfContainer');
+            const fnfCanvas = document.getElementById('fnfCanvas');
+            const fnfCtx = fnfCanvas.getContext('2d');
+            const crashScreen = document.getElementById('crashScreen');
+            fnfContainer.style.display = 'block';
+
+            // Load player and monster images
+            const playerImg = new Image();
+            playerImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/6a483e08c9e4c_download.jpeg';
+            
+            const monsterImg = new Image();
+            monsterImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png';
+
+            let health = 50; // max 100
+            let score = 0;
+            let songTime = 0;
+            const scrollSpeed = 6;
+            const hitY = 100;
+
+            // Generate spammy, overcharted notes
+            let notes = [];
+            for (let t = 1; t < 30; t += 0.35) {
+                let lane = Math.floor(Math.random() * 4);
+                notes.push({ time: t, lane: lane, hit: false });
+                if (Math.random() > 0.4) {
+                    let lane2 = (lane + 2) % 4;
+                    notes.push({ time: t, lane: lane2, hit: false });
+                }
+            }
+
+            // Web Audio API Beat Engine
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let nextNoteTime = audioCtx.currentTime;
+            let beatIndex = 0;
+
+            function playBeep(freq, duration = 0.1) {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            }
+
+            let songInterval = setInterval(() => {
+                songTime += 0.1;
+                let freqs = [150, 220, 300, 440];
+                playBeep(freqs[Math.floor(Math.random() * freqs.length)], 0.08);
+
+                if (songTime > 12 && health > 0) {
+                    clearInterval(songInterval);
+                    fnfContainer.style.display = 'none';
+                    endScreen.style.display = 'flex';
+                }
+            }, 100);
+
+            const laneKeys = ['ArrowLeft', 'ArrowDown', 'ArrowUp', 'ArrowRight'];
+            const altKeys = ['a', 's', 'w', 'd'];
+
+            window.addEventListener('keydown', handleKeyPress);
+
+            function handleKeyPress(e) {
+                let lane = -1;
+                if (laneKeys.indexOf(e.key) !== -1) lane = laneKeys.indexOf(e.key);
+                if (altKeys.indexOf(e.key) !== -1) lane = altKeys.indexOf(e.key);
+
+                if (lane !== -1) {
+                    let hitAny = false;
+                    for (let n of notes) {
+                        if (!n.hit && n.lane === lane) {
+                            let noteY = hitY + (n.time - songTime) * 60 * scrollSpeed;
+                            if (Math.abs(noteY - hitY) < 45) {
+                                n.hit = true;
+                                score += 100;
+                                health = Math.min(100, health + 4);
+                                hitAny = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!hitAny) {
+                        health = Math.max(0, health - 3);
+                        checkDeath();
+                    }
+                }
+            }
+
+            function checkDeath() {
+                if (health <= 0) {
+                    clearInterval(songInterval);
+                    window.removeEventListener('keydown', handleKeyPress);
+                    fnfContainer.style.display = 'none';
+                    crashScreen.style.display = 'flex';
+                }
+            }
+
+            function fnfLoop() {
+                fnfCtx.fillStyle = '#000000';
+                fnfCtx.fillRect(0, 0, fnfCanvas.width, fnfCanvas.height);
+
+                // Draw Characters
+                if (monsterImg.complete) {
+                    fnfCtx.drawImage(monsterImg, 120, 180, 150, 200);
+                }
+                if (playerImg.complete) {
+                    fnfCtx.drawImage(playerImg, 530, 180, 160, 200);
+                }
+
+                // Draw Health Bar
+                fnfCtx.fillStyle = '#ff0000';
+                fnfCtx.fillRect(200, 50, 400, 20);
+                fnfCtx.fillStyle = '#00ff00';
+                fnfCtx.fillRect(200, 50, (health / 100) * 400, 20);
+                fnfCtx.strokeStyle = '#ffffff';
+                fnfCtx.lineWidth = 2;
+                fnfCtx.strokeRect(200, 50, 400, 20);
+
+                // Draw Lanes & Receptors
+                let startX = 280;
+                let laneWidth = 60;
+                for (let i = 0; i < 4; i++) {
+                    let lx = startX + i * laneWidth;
+                    fnfCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+                    fnfCtx.strokeRect(lx, 0, laneWidth, fnfCanvas.height);
+
+                    // Receptor arrow
+                    fnfCtx.fillStyle = '#ffffff';
+                    fnfCtx.fillRect(lx + 10, hitY, 40, 40);
+                }
+
+                // Draw Notes
+                for (let n of notes) {
+                    if (!n.hit) {
+                        let noteY = hitY + (n.time - songTime) * 60 * scrollSpeed;
+                        let nx = startX + n.lane * laneWidth + 10;
+                        if (noteY > -50 && noteY < fnfCanvas.height + 50) {
+                            fnfCtx.fillStyle = n.lane % 2 === 0 ? '#ff0055' : '#00ffff';
+                            fnfCtx.fillRect(nx, noteY, 40, 40);
+                        }
+                        // Miss check
+                        if (noteY < hitY - 40 && !n.missed) {
+                            n.missed = true;
+                            health = Math.max(0, health - 5);
+                            checkDeath();
+                        }
+                    }
+                }
+
+                // Score text
+                fnfCtx.fillStyle = '#ffffff';
+                fnfCtx.font = '20px monospace';
+                fnfCtx.fillText(`Score: ${score}`, 350, 100);
+
+                if (health > 0 && songTime <= 12) {
+                    requestAnimationFrame(fnfLoop);
+                }
+            }
+
+            fnfLoop();
         }
     </script>
 </body>
