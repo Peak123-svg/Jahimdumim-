@@ -676,20 +676,18 @@
             const crashScreen = document.getElementById('crashScreen');
             fnfContainer.style.display = 'block';
 
-            // Load player and monster images
             const playerImg = new Image();
             playerImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/6a483e08c9e4c_download.jpeg';
             
             const monsterImg = new Image();
             monsterImg.src = 'https://raw.githubusercontent.com/Peak123-svg/Jahimdumim-/main/image.png';
 
-            let health = 50; // max 100
+            let health = 50; 
             let score = 0;
             let songTime = 0;
             const scrollSpeed = 6;
             const hitY = 100;
 
-            // Generate spammy, overcharted notes
             let notes = [];
             for (let t = 1; t < 30; t += 0.35) {
                 let lane = Math.floor(Math.random() * 4);
@@ -700,10 +698,7 @@
                 }
             }
 
-            // Web Audio API Beat Engine
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            let nextNoteTime = audioCtx.currentTime;
-            let beatIndex = 0;
 
             function playBeep(freq, duration = 0.1) {
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -726,6 +721,7 @@
 
                 if (songTime > 12 && health > 0) {
                     clearInterval(songInterval);
+                    window.removeEventListener('keydown', handleKeyPress);
                     fnfContainer.style.display = 'none';
                     endScreen.style.display = 'flex';
                 }
@@ -775,7 +771,6 @@
                 fnfCtx.fillStyle = '#000000';
                 fnfCtx.fillRect(0, 0, fnfCanvas.width, fnfCanvas.height);
 
-                // Draw Characters
                 if (monsterImg.complete) {
                     fnfCtx.drawImage(monsterImg, 120, 180, 150, 200);
                 }
@@ -783,7 +778,6 @@
                     fnfCtx.drawImage(playerImg, 530, 180, 160, 200);
                 }
 
-                // Draw Health Bar
                 fnfCtx.fillStyle = '#ff0000';
                 fnfCtx.fillRect(200, 50, 400, 20);
                 fnfCtx.fillStyle = '#00ff00';
@@ -792,7 +786,6 @@
                 fnfCtx.lineWidth = 2;
                 fnfCtx.strokeRect(200, 50, 400, 20);
 
-                // Draw Lanes & Receptors
                 let startX = 280;
                 let laneWidth = 60;
                 for (let i = 0; i < 4; i++) {
@@ -800,12 +793,10 @@
                     fnfCtx.strokeStyle = 'rgba(255,255,255,0.3)';
                     fnfCtx.strokeRect(lx, 0, laneWidth, fnfCanvas.height);
 
-                    // Receptor arrow
                     fnfCtx.fillStyle = '#ffffff';
                     fnfCtx.fillRect(lx + 10, hitY, 40, 40);
                 }
 
-                // Draw Notes
                 for (let n of notes) {
                     if (!n.hit) {
                         let noteY = hitY + (n.time - songTime) * 60 * scrollSpeed;
@@ -814,7 +805,6 @@
                             fnfCtx.fillStyle = n.lane % 2 === 0 ? '#ff0055' : '#00ffff';
                             fnfCtx.fillRect(nx, noteY, 40, 40);
                         }
-                        // Miss check
                         if (noteY < hitY - 40 && !n.missed) {
                             n.missed = true;
                             health = Math.max(0, health - 5);
@@ -823,7 +813,6 @@
                     }
                 }
 
-                // Score text
                 fnfCtx.fillStyle = '#ffffff';
                 fnfCtx.font = '20px monospace';
                 fnfCtx.fillText(`Score: ${score}`, 350, 100);
